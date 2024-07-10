@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP 1149848
+D RJ45 PCB connectors, degree of protection: IP20, number of positions: 8, 10 Gbps, material: Copper alloy, connection method: Wave soldering contacts
+K
+F http://www.phoenixcontact.com/de/produkte/1149848
+$ENDCMP
+#
+#End Doc Library

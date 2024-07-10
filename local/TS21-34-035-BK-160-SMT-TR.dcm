@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP TS21-34-035-BK-160-SMT-TR
+D 3.4 x 3.4 mm, 0.35 mm Actuator Height, 160 gf, Surface Mount, SPST, Black Illuminated, Tactile Switch
+K
+F https://www.cuidevices.com/product/resource/ts21.pdf
+$ENDCMP
+#
+#End Doc Library

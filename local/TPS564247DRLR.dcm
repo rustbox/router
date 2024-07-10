@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP TPS564247DRLR
+D Switching Voltage Regulators 3-V to 16-V input voltage, 4-A FCCM mode, synchronous buck converter in SOT-563 package
+K
+F https://www.ti.com/lit/ds/symlink/tps564242.pdf
+$ENDCMP
+#
+#End Doc Library
