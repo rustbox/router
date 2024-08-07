@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP GPY111
+D Ethernet ICs PEF7071VV16 PHY IC 1000BASE-X 400mW
+K
+F https://www.maxlinear.com/ds/618152_gpy111_pef7071vv16_hd_rev1.5.pdf
+$ENDCMP
+#
+#End Doc Library
