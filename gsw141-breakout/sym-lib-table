@@ -6,4 +6,6 @@
   (lib (name "TPS564247DRLR")(type "KiCad")(uri "/home/dougli1sqrd/code/rustbox/router/local/TPS564247DRLR.kicad_sym")(options "")(descr ""))
   (lib (name "TS21-34-035-BK-160-SMT-TR")(type "KiCad")(uri "/home/dougli1sqrd/code/rustbox/router/local/TS21-34-035-BK-160-SMT-TR.kicad_sym")(options "")(descr ""))
   (lib (name "PB400EEQR1BLK")(type "KiCad")(uri "/home/dougli1sqrd/code/rustbox/router/local/PB400EEQR1BLK.kicad_sym")(options "")(descr ""))
+  (lib (name "AP7363-HA-7")(type "KiCad")(uri "/home/dougli1sqrd/code/rustbox/router/local/AP7363-HA-7.kicad_sym")(options "")(descr ""))
+  (lib (name "TPS563207DRLR")(type "KiCad")(uri "/home/dougli1sqrd/code/rustbox/router/local/TPS563207DRLR.kicad_sym")(options "")(descr ""))
 )

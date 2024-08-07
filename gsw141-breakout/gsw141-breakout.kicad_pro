@@ -38,8 +38,8 @@
         "other_text_upright": false,
         "pads": {
           "drill": 0.0,
-          "height": 0.28,
-          "width": 0.25
+          "height": 0.475,
+          "width": 0.3
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -61,6 +61,11 @@
           "gap": 0.1016,
           "via_gap": 0.1016,
           "width": 0.0762
+        },
+        {
+          "gap": 0.1016,
+          "via_gap": 0.0,
+          "width": 0.2032
         }
       ],
       "drc_exclusions": [],
@@ -121,7 +126,7 @@
       },
       "rules": {
         "max_error": 0.005,
-        "min_clearance": 0.0,
+        "min_clearance": 0.127,
         "min_connection": 0.0,
         "min_copper_edge_clearance": 0.5,
         "min_hole_clearance": 0.25,
@@ -132,10 +137,10 @@
         "min_silk_clearance": 0.0,
         "min_text_height": 0.8,
         "min_text_thickness": 0.08,
-        "min_through_hole_diameter": 0.3,
+        "min_through_hole_diameter": 0.15,
         "min_track_width": 0.0,
-        "min_via_annular_width": 0.1,
-        "min_via_diameter": 0.5,
+        "min_via_annular_width": 0.05,
+        "min_via_diameter": 0.3,
         "solder_mask_to_copper_clearance": 0.0,
         "use_height_for_length_calcs": true
       },
@@ -187,6 +192,7 @@
         0.0762,
         0.1016,
         0.127,
+        0.2032,
         0.254,
         0.508,
         1.0,
@@ -222,6 +228,22 @@
         {
           "diameter": 0.0,
           "drill": 0.0
+        },
+        {
+          "diameter": 0.3,
+          "drill": 0.2
+        },
+        {
+          "diameter": 0.4,
+          "drill": 0.3
+        },
+        {
+          "diameter": 0.4064,
+          "drill": 0.254
+        },
+        {
+          "diameter": 0.6096,
+          "drill": 0.3048
         }
       ],
       "zones_allow_external_fillets": false
@@ -474,7 +496,24 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "track_width": 0.0762,
-        "via_diameter": 0.3556,
+        "via_diameter": 0.4,
+        "via_drill": 0.3,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.0762,
+        "diff_pair_gap": 0.1016,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2032,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "100R Diff",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.0762,
+        "via_diameter": 0.4064,
         "via_drill": 0.254,
         "wire_width": 6
       },
@@ -520,16 +559,20 @@
     "netclass_assignments": null,
     "netclass_patterns": [
       {
-        "netclass": "Diff",
+        "netclass": "100R Diff",
+        "pattern": "/A0+"
+      },
+      {
+        "netclass": "100R Diff",
+        "pattern": "/A0-"
+      },
+      {
+        "netclass": "100R Diff",
         "pattern": "*+"
       },
       {
-        "netclass": "Diff",
+        "netclass": "100R Diff",
         "pattern": "*-"
-      },
-      {
-        "netclass": "Smol Diff",
-        "pattern": "/G1B*"
       }
     ]
   },

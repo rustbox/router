@@ -58,6 +58,8 @@ Use `TMJG46945AENL` on mouser, 1x4 port
 
 2 @ 2.78 + 2 @ 2 = $9.56
 
+# Board Questions
+[ ] How should the 1000 Base T diff pairs be terminated into the magnetics?
 
 # Board TODO
 
@@ -95,8 +97,11 @@ Use `TMJG46945AENL` on mouser, 1x4 port
     * RC delay from 3.3 V into 1.1V enable
 [ ] Make sure trace clearance is okay
 [ ] Power off?
+[x] Power Caps on GSW chip
 [x] Blank R for RESREF and RCAL
+[ ] Fix the RJ45 / magnetic pinout alignment so routing is easier
 [ ] Diff Pairs that are off by more than 10s of mm should be length tuned
 [ ] Empty Footprint for linear regulator(s)?
+[ ] TI 1G checklist https://www.ti.com/lit/an/snla387/snla387.pdf?ts=1720391456901
 
 

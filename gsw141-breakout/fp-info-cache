@@ -1,4 +1,4 @@
-23633056801799101
+23634778067813175
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -96354,6 +96354,13 @@ PB400EEQR1BLK
 0
 4
 4
+local
+SON50P300X200X63-9N
+U-DFN2030-8
+Integrated Circuit
+0
+9
+9
 local
 SOTFL50P160X60-6N
 DRL0006A
