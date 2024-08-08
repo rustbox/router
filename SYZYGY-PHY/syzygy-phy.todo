@@ -54,3 +54,19 @@ RXC
 
 MDC
 MDIO
+
+GPY111 Header
+=============
+- RSTN
+- MDC
+- MDIO
+- MDINT
+ // EEPROM
+- SCL
+- SDA
+ // JTAG
+- TDO
+- TDI
+- TMS
+- TCK
+
