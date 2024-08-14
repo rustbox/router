@@ -6492,7 +6492,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "18p"
+		(property "Value" "33p"
 			(at 192.786 81.788 90)
 			(effects
 				(font
@@ -7903,7 +7903,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "18p"
+		(property "Value" "33p"
 			(at 192.532 60.452 90)
 			(effects
 				(font
@@ -10992,7 +10992,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
+		(property "Datasheet" "https://www.mouser.com/datasheet/2/137/FA_238_en-932914.pdf"
 			(at 189.23 72.39 0)
 			(effects
 				(font
@@ -11003,6 +11003,15 @@
 		)
 		(property "Description" "Four pin crystal, GND on pins 2 and 4"
 			(at 189.23 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Mouser" "FA-238 25.0000MB-I "
+			(at 189.23 72.39 90)
 			(effects
 				(font
 					(size 1.27 1.27)

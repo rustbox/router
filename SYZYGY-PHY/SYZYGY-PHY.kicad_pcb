@@ -436,7 +436,7 @@
 		(descr "Inductor SMD 0805 (2012 Metric), square (rectangular) end terminal, IPC_7351 nominal with elongated pad for handsoldering. (Body size source: IPC-SM-782 page 80, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
 		(tags "inductor handsolder")
 		(property "Reference" "L1"
-			(at 0 -1.55 0)
+			(at -2.65 -0.75 0)
 			(layer "F.SilkS")
 			(uuid "c658f7ef-d267-4755-95f5-ff09343f2b49")
 			(effects
@@ -4761,7 +4761,7 @@
 				)
 			)
 		)
-		(property "Value" "18p"
+		(property "Value" "33p"
 			(at 0 1.68 90)
 			(layer "F.Fab")
 			(uuid "2e54e482-5560-48a4-84a9-418594128176")
@@ -4964,7 +4964,7 @@
 		(descr "SMD Crystal SERIES SMD3225/4 http://www.txccrystal.com/images/pdf/7m-accuracy.pdf, hand-soldering, 3.2x2.5mm^2 package")
 		(tags "SMD SMT crystal hand-soldering")
 		(property "Reference" "Y1"
-			(at 5.35 2 0)
+			(at 1.35 3 0)
 			(layer "F.SilkS")
 			(uuid "d6bb0662-5c1e-4543-9af8-f013edf1b5f6")
 			(effects
@@ -4998,7 +4998,7 @@
 				)
 			)
 		)
-		(property "Datasheet" ""
+		(property "Datasheet" "https://www.mouser.com/datasheet/2/137/FA_238_en-932914.pdf"
 			(at 0 0 180)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -5020,6 +5020,19 @@
 			(effects
 				(font
 					(size 1.27 1.27)
+					(thickness 0.15)
+				)
+			)
+		)
+		(property "Mouser" "FA-238 25.0000MB-I "
+			(at 0 0 180)
+			(unlocked yes)
+			(layer "F.Fab")
+			(hide yes)
+			(uuid "4a90ad1c-dabb-449d-a1b4-a3d5b186ccff")
+			(effects
+				(font
+					(size 1 1)
 					(thickness 0.15)
 				)
 			)
@@ -5535,7 +5548,7 @@
 		(descr "Resistor SMD 0805 (2012 Metric), square (rectangular) end terminal, IPC_7351 nominal with elongated pad for handsoldering. (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
 		(tags "resistor handsolder")
 		(property "Reference" "R1"
-			(at -2.75 -0.05 0)
+			(at -2.65 -0.65 0)
 			(layer "F.SilkS")
 			(uuid "7d629c4d-74ee-4b19-8a8b-406718bf8af9")
 			(effects
@@ -5758,7 +5771,7 @@
 				)
 			)
 		)
-		(property "Value" "18p"
+		(property "Value" "33p"
 			(at 0 1.68 90)
 			(layer "F.Fab")
 			(uuid "4489466c-6063-4648-92f1-e1b84ea5e7bc")
