@@ -500,6 +500,23 @@
         "via_diameter": 0.0,
         "via_drill": 0.0,
         "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 0.127,
+        "diff_pair_gap": 0.0,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.0,
+        "line_style": 0,
+        "microvia_diameter": 0.0,
+        "microvia_drill": 0.0,
+        "name": "RGMII",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.254,
+        "via_diameter": 0.4572,
+        "via_drill": 0.254,
+        "wire_width": 6
       }
     ],
     "meta": {
@@ -511,6 +528,22 @@
       {
         "netclass": "MDI",
         "pattern": "/TD*"
+      },
+      {
+        "netclass": "RGMII",
+        "pattern": "/TX_*"
+      },
+      {
+        "netclass": "RGMII",
+        "pattern": "/RX_*"
+      },
+      {
+        "netclass": "RGMII",
+        "pattern": "/RXD*"
+      },
+      {
+        "netclass": "RGMII",
+        "pattern": "/TXD*"
       }
     ]
   },
