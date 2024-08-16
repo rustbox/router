@@ -618,7 +618,7 @@
 		(remove_unused_layers no)
 		(uuid "593517a9-7225-45e1-a34f-c6ec16009008")
 	)
-	(model "/home/dougli1sqrd/code/rustbox/router/local/ARJM11C7-502-KB-EW2.STEP"
+	(model "${KIPRJMOD}/../local/ARJM11C7-502-KB-EW2.STEP"
 		(offset
 			(xyz -4.5 -9 0)
 		)

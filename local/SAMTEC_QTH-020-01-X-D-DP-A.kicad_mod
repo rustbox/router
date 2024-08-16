@@ -606,4 +606,15 @@
 		(solder_mask_margin 0.102)
 		(uuid "3d6ce03e-e6c5-47b0-bfc9-201673af554c")
 	)
+	(model "${KIPRJMOD}/../local/QTH-020-01-X-D-DP-A.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 0 0)
+		)
+	)
 )
