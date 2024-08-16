@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP TXV0106BQBR
+D Voltage Level Translator Unidirectional 1 Circuit 6 Channel 500Mbps 16-WQFN (2.5x3.5)
+K
+F https://www.ti.com/lit/ds/symlink/txv0106.pdf?ts=1710334541958&ref_url=https%253A%252F%252Fwww.ti.com%252Fproduct%252FTXV0106%253FkeyMatch%253DTXV
+$ENDCMP
+#
+#End Doc Library
