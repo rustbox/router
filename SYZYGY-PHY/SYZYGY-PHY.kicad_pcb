@@ -5348,7 +5348,7 @@
 			(solder_mask_margin 0.102)
 			(uuid "9092b493-25bf-4b38-92f2-28aec7d8307d")
 		)
-		(model "/home/dougli1sqrd/code/rustbox/router/local/QTH-020-01-X-D-DP-A.step"
+		(model "${KIPRJMOD}/../local/QTH-020-01-X-D-DP-A.step"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -5356,7 +5356,7 @@
 				(xyz 1 1 1)
 			)
 			(rotate
-				(xyz -90 0 0)
+				(xyz 0 0 0)
 			)
 		)
 	)
@@ -11760,7 +11760,7 @@
 			(pintype "passive")
 			(uuid "c68abaa3-80ef-4b37-a36b-63103edcb248")
 		)
-		(model "/home/dougli1sqrd/code/rustbox/router/local/ARJM11C7-502-KB-EW2.STEP"
+		(model "${KIPRJMOD}/../local/ARJM11C7-502-KB-EW2.STEP"
 			(offset
 				(xyz -4.5 -9 0)
 			)
