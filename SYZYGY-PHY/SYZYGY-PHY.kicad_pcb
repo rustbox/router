@@ -2103,7 +2103,7 @@
 		(descr "Resistor SMD 0805 (2012 Metric), square (rectangular) end terminal, IPC_7351 nominal with elongated pad for handsoldering. (Body size source: IPC-SM-782 page 72, https://www.pcb-3d.com/wordpress/wp-content/uploads/ipc-sm-782a_amendment_1_and_2.pdf), generated with kicad-footprint-generator")
 		(tags "resistor handsolder")
 		(property "Reference" "R8"
-			(at 0 -1.65 0)
+			(at 2.65 0.05 0)
 			(layer "F.SilkS")
 			(uuid "81c8e231-e6ad-4b42-aff8-806e4567cfae")
 			(effects
@@ -2860,14 +2860,15 @@
 		(descr "Mounting Hole 2.7mm, M2.5")
 		(tags "mounting hole 2.7mm m2.5")
 		(property "Reference" "H1"
-			(at 0 3.95 0)
-			(layer "F.SilkS")
+			(at 3.85 -1.05 -0)
+			(layer "B.SilkS")
 			(uuid "329bb254-612c-4efe-881d-5df1a4d9d1d1")
 			(effects
 				(font
 					(size 1 1)
 					(thickness 0.15)
 				)
+				(justify mirror)
 			)
 		)
 		(property "Value" "MountingHole_Pad"
@@ -12722,10 +12723,34 @@
 			(justify left bottom)
 		)
 	)
+	(gr_text "   1Gbps PHY\n   over SYZYGY\nfor BeagleV-fire\n"
+		(at 95.25 68.85 270)
+		(layer "F.SilkS")
+		(uuid "d0ae563f-69a2-4944-89da-535f185b0f94")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
 	(gr_text "C R"
 		(at 104.25 67.65 0)
 		(layer "F.SilkS")
 		(uuid "de7bd2ff-0ad8-499f-9b57-ca578559c47f")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+			(justify left bottom)
+		)
+	)
+	(gr_text "@rustbox\nrev 1 08-17-2024"
+		(at 91.825 68.85 -90)
+		(layer "F.SilkS")
+		(uuid "f7d9dae2-8c57-40fb-be40-cdbc48bf5324")
 		(effects
 			(font
 				(size 1 1)
