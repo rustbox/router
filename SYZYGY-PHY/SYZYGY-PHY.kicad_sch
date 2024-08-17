@@ -11024,7 +11024,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Inductor_SMD:L_0805_2012Metric_Pad1.05x1.20mm_HandSolder"
+		(property "Footprint" "local:Inductor 0806 (2016 metric)"
 			(at 213.36 52.07 0)
 			(effects
 				(font
@@ -11033,7 +11033,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "https://product.tdk.com/system/files/dam/doc/product/inductor/inductor/smd/catalog/inductor_commercial_decoupling_mlz2012_en.pdf"
+		(property "Datasheet" "https://www.mouser.com/datasheet/2/396/wound10_e-1396630.pdf"
 			(at 213.36 52.07 0)
 			(effects
 				(font
@@ -11051,7 +11051,7 @@
 				(hide yes)
 			)
 		)
-		(property "Part" "MLZ2012N4R7LT000 "
+		(property "Part" "MAKK2016T4R7M"
 			(at 213.36 52.07 90)
 			(effects
 				(font
