@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "QSH-020-01-X-D-DP-A")(type "KiCad")(uri "${KIPRJMOD}/../local/QSH-020-01-X-D-DP-A.kicad_sym")(options "")(descr ""))
+)
