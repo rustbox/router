@@ -1,5 +1,5 @@
 [workspace]
-members = ["pkt", "tap"]
+members = ["pkt", "tap", "dwf"]
 resolver = "2"
 
 exclude = ["jtag", "tools"]

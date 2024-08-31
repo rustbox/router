@@ -1,0 +1,11 @@
+[package]
+name = "dwf-host"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "dwf"
+path = "main.rs"
+
+[dependencies]
+dwf = { git = "https://github.com/chrisdsa/dwf-rs.git", branch = "fix_linux_device_info" }
