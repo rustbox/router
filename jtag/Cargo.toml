@@ -1,0 +1,58 @@
+# cargo-features = ["per-package-target"]
+# it'd be nice if that worked; instead, it produces an error like:
+# ```
+#   thread 'main' panicked at src/cargo/core/resolver/features.rs:323:14:
+#   activated_features for invalid package: features did not find PackageId { name: "esp-riscv-rt", version: "0.9.0", source: "registry `crates-io`" } NormalOrDev
+# ```
+# and, it'd also apparently cause "profile-rustflags" to be misapplied.
+# Both issues are known and part of the tracking issue: https://github.com/rust-lang/cargo/issues/9406
+#
+# If we had those in some nightly rust, we could move our rust-toolchain.toml and cargo config up
+# to the top level (the latter after deleting `target = ...`, of course) and not have to truck with
+# so many working directories.
+#
+# As it stands, it's recommended to `cd` into the `jtag` directory before invoking e.g. `cargo run`.
+
+[package]
+name = "jtag"
+version = "0.1.0"
+edition = "2021"
+
+# one of these would be nice, but, see above.
+# default-target = "riscv32imc-unknown-none-elf"
+# forced-target = "riscv32imc-unknown-none-elf"
+
+[[bin]]
+name = "jtag"
+path = "jtag.rs"
+test = false
+bench = false
+
+# [lib]
+# if we add a lib, we'll want these to avoid odd --all-targets behavior.
+# test = false
+# bench = false
+
+[dependencies]
+esp-backtrace = { version = "0.13.0", features = [
+    "esp32c3",
+    "exception-handler",
+    "panic-handler",
+    "println",
+] }
+esp-hal = { version = "0.19.0", features = ["esp32c3"] }
+esp-println = { version = "0.10.0", features = ["esp32c3"] }
+# log = { version = "0.4.21" }
+esp-alloc = { version = "0.4.0" }
+
+[profile.dev]
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1
+debug = 2
+debug-assertions = false
+incremental = false
+lto = 'fat'
+opt-level = 's'
+overflow-checks = false

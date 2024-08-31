@@ -1,0 +1,13 @@
+[target.riscv32imc-unknown-none-elf]
+runner = "cargo -Zunstable-options -C ../tools -Zbindeps run --release -- espflash flash --monitor"
+
+[build]
+rustflags = ["-C", "force-frame-pointers"]
+# oh, this little guy? don't worry about this little guy
+# see also, this bullshit: https://github.com/rust-lang/cargo/blob/c1fa840a85eca53818895901a53fae34247448b2/src/cargo/ops/cargo_run.rs#L89-L93
+target-dir = "../target"
+
+target = "riscv32imc-unknown-none-elf"
+
+[unstable]
+build-std = ["alloc", "core"]

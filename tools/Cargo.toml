@@ -1,0 +1,12 @@
+[workspace]
+
+[package]
+name = "tools"
+edition = "2021"
+
+[[bin]]
+name = "tools"
+path = "./tools.rs"
+
+[dependencies]
+espflash = { version = "3.1.1", artifact = "bin" }

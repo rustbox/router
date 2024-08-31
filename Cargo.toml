@@ -1,3 +1,5 @@
 [workspace]
 members = ["pkt", "tap"]
 resolver = "2"
+
+exclude = ["jtag", "tools"]
