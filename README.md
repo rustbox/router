@@ -32,11 +32,10 @@ We're currently designing the PHY portion with the MaxLinear GPY111
 
 The MAC is the [Media Access Interface](https://en.wikipedia.org/wiki/Medium_access_control), the "brains" of the router. We're thinking of using the standard [Chipyard](https://chipyard.readthedocs.io/en/latest/) RISC-V CPU written in [Chisel](https://www.chisel-lang.org/) with our own RGMII interface, all flashed onto an FPGA.
 
-We will also want an amount of DRAM connected to the PHY to buffer incoming and outgoing ethernet frames as needed, and for any needed storage for the SoC.
+We will also want an amount of DRAM connected to the PHY to buffer incoming and outgoing ethernet frames as needed, and for any needed storage for the (soft) SoC.
 
-
-So our FPGA needs to have:
-* Each ethernet port has 12 (14, including the management pins per port), so 56
+So our FPGA needs to have a certain amount of I/O pins:
+* Each ethernet port needs 12 (14, including the management pins per port), so 56 pins
 * 28 address, 16 data lines, plus a handful for management for DRAM
 * UART
 * Total: upwards of ~110 IOs available
