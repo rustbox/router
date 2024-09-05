@@ -30,6 +30,12 @@ fp-info-cache
 *.xml
 *.csv
 
+# Exported Assembly files
+*.drl
+*.gbr
+*.gbrjob
+*.zip
+
 
 ## via https://github.com/github/gitignore/blob/8779ee73af62c669e7ca371aaab8399d87127693/Rust.gitignore
 

@@ -3,4 +3,5 @@
   (lib (name "QTH-020-01-X-D-DP-A")(type "KiCad")(uri "${KIPRJMOD}/../local/QTH-020-01-X-D-DP-A.kicad_sym")(options "")(descr ""))
   (lib (name "GPY111")(type "KiCad")(uri "${KIPRJMOD}/../local/GPY111.kicad_sym")(options "")(descr ""))
   (lib (name "ARJM11C7-xxx-AB-EW2")(type "KiCad")(uri "${KIPRJMOD}/../local/ARJM11C7-xxx-AB-EW2.kicad_sym")(options "")(descr ""))
+  (lib (name "TXV0106BQBR")(type "KiCad")(uri "${KIPRJMOD}/../local/TXV0106BQBR.kicad_sym")(options "")(descr ""))
 )
