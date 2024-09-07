@@ -40,5 +40,5 @@ So this means:
 
 Therefore:
 * LED0: resistor and capacitor should be chosen based on the pattern of `0bBCDE`
-* LED1: resistor value should be 11.0 kOhm, with no capacitor
+* LED1: resistor value should be 11.0 kOhm, And if A=0 then no capacitor, and if A=1 then use a 100 nF capacitor
 * LED2: resistor value should be 3.92 kOhm, with a 100 nF capacitor
