@@ -82,6 +82,7 @@ class VRMLLoader extends Loader {
 
 	parse( data, path ) {
 
+		const loader = this;
 		const nodeMap = {};
 
 		function generateVRMLTree( data ) {
@@ -185,7 +186,8 @@ class VRMLLoader extends Loader {
 
 			const StringLiteral = createToken( { name: 'StringLiteral', pattern: /"(?:[^\\"\n\r]|\\[bfnrtv"\\/]|\\u[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])*"/ } );
 			const HexLiteral = createToken( { name: 'HexLiteral', pattern: /0[xX][0-9a-fA-F]+/ } );
-			const NumberLiteral = createToken( { name: 'NumberLiteral', pattern: /[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?/ } );
+			// cf. https://regexr.com/85i9u
+			const NumberLiteral = createToken( { name: 'NumberLiteral', pattern: /[-+]?([0-9]+\.?[0-9]*|\.?[0-9]+)([eE][-+]?[0-9]+)?/ } );
 			const TrueLiteral = createToken( { name: 'TrueLiteral', pattern: /TRUE/ } );
 			const FalseLiteral = createToken( { name: 'FalseLiteral', pattern: /FALSE/ } );
 			const NullLiteral = createToken( { name: 'NullLiteral', pattern: /NULL/ } );
@@ -700,9 +702,12 @@ class VRMLLoader extends Loader {
 					build = buildWorldInfoNode( node );
 					break;
 
+				case 'Inline':
+					build = buildInlineNode( node );
+					break;
+
 				case 'Billboard':
 
-				case 'Inline':
 				case 'LOD':
 				case 'Switch':
 
@@ -835,6 +840,57 @@ class VRMLLoader extends Loader {
 
 			return object;
 
+		}
+
+		function buildInlineNode ( node ) {
+
+			const object = new Group();
+
+			//
+
+			const fields = node.fields;
+
+			for ( let i = 0, l = fields.length; i < l; i ++ ) {
+
+				const field = fields[ i ];
+				const fieldName = field.name;
+				const fieldValues = field.values;
+
+				switch ( fieldName ) {
+
+					case 'bboxCenter':
+						// field not supported
+						break;
+
+					case 'bboxSize':
+						// field not supported
+						break;
+
+					case 'url':
+						const urls = fieldValues;
+						function tryUrl(i) {
+							loader.load( urls[i], function ( loaded ) {
+								object.clear()
+								object.add(loaded)
+							}, undefined, function ( err ) {
+								if (i < urls.length - 1)
+									tryUrl(i+1)
+								else
+									console.error(err)
+							} );
+						}
+						tryUrl(0)
+						break;
+
+						default:
+						console.warn( 'THREE.VRMLLoader: Unknown field:', fieldName );
+						break;
+
+				}
+
+			}
+
+			return object;
 		}
 
 		function buildBackgroundNode( node ) {

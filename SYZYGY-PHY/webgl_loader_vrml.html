@@ -37,8 +37,8 @@
 		let camera, scene, renderer, stats, controls, loader, guiStatsEl;
 
 		const params = {
-			asset: 'house.wrl',
-			// asset: 'SYZYGY-PHY.wrl',
+			// asset: 'house.wrl',
+			asset: 'SYZYGY-PHY.wrl',
 		};
 
 		const assets = [
@@ -62,10 +62,10 @@
 
 		function init() {
 
-			camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1e10);
-			camera.position.set(- 10, 5, 10);
-			// camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1e-3, 1);
-			// camera.position.set(0, 0, -0.04);
+			// camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1e10);
+			// camera.position.set(- 10, 5, 10);
+			camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1e-3, 1);
+			camera.position.set(0, 0, -0.04);
 
 			const gui = new GUI({
 				width: 400,
