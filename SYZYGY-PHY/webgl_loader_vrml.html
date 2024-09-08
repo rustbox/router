@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>three.js webgl - loaders - VRML loader</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<!-- <link type="text/css" rel="stylesheet" href="main.css"> -->
+</head>
+
+<body>
+	<div id="info">
+		<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - VRML loader
+	</div>
+
+	<script type="importmap">
+			{
+				"imports": {
+					"three": "https://cdn.jsdelivr.net/npm/three@v0.168.0/build/three.module.js",
+					"three/addons/": "https://cdn.jsdelivr.net/npm/three@v0.168.0/examples/jsm/",
+					"three/addons/loaders/VRMLLoader.js": "./VRMLLoader.js",
+					"../libs/chevrotain.module.min.js": "https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/libs/chevrotain.module.min.js"
+				}
+			}
+		</script>
+
+	<script type="module">
+
+		import * as THREE from 'three';
+
+		import Stats from 'three/addons/libs/stats.module.js';
+
+		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+		import { VRMLLoader } from 'three/addons/loaders/VRMLLoader.js';
+		import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+
+		let camera, scene, renderer, stats, controls, loader, guiStatsEl;
+
+		const params = {
+			asset: 'house.wrl',
+			// asset: 'SYZYGY-PHY.wrl',
+		};
+
+		const assets = [
+			'house.wrl',
+			'SYZYGY-PHY.wrl',
+			'shapes3D/GPY111.wrl',
+			'shapes3D/ARJM11C7-502-KB-EW2.wrl',
+			'shapes3D/C_0805_2012Metric.wrl',
+			'shapes3D/Crystal_SMD_3225-4Pin_3.2x2.5mm_HandSoldering.wrl',
+			'shapes3D/LED_0805_2012Metric.wrl',
+			'shapes3D/PinHeader_1x02_P2.54mm_Vertical.wrl',
+			'shapes3D/PinSocket_1x11_P2.54mm_Vertical.wrl',
+			'shapes3D/QTH-020-01-X-D-DP-A.wrl',
+			'shapes3D/R_0805_2012Metric.wrl',
+			'shapes3D/TXV0106BQBR.wrl',
+		];
+
+		let vrmlScene;
+
+		init();
+
+		function init() {
+
+			camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1e10);
+			camera.position.set(- 10, 5, 10);
+			// camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1e-3, 1);
+			// camera.position.set(0, 0, -0.04);
+
+			const gui = new GUI({
+				width: 400,
+			});
+
+			//
+
+			gui.add(params, 'asset', assets).onChange(function (value) {
+
+				if (vrmlScene) {
+
+					vrmlScene.traverse(function (object) {
+
+						if (object.material) object.material.dispose();
+						if (object.material && object.material.map) object.material.map.dispose();
+						if (object.geometry) object.geometry.dispose();
+
+					});
+
+					scene.remove(vrmlScene);
+
+				}
+
+				if (modelFolder.$children) modelFolder.$children.replaceChildren();
+
+				loadAsset(value);
+
+			});
+
+			const perfFolder = gui.addFolder('Performance');
+
+			guiStatsEl = document.createElement('div');
+			guiStatsEl.classList.add('gui-stats');
+
+			perfFolder.$children.appendChild(guiStatsEl);
+			perfFolder.open();
+
+			const modelFolder = gui.addFolder('Models');
+
+			scene = new THREE.Scene();
+			scene.add(camera);
+
+			var axesHelper = new THREE.AxesHelper(5);
+			scene.add(axesHelper);
+			// light
+
+			const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+			scene.add(ambientLight);
+
+			const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+			dirLight.position.set(200, 200, 200);
+			scene.add(dirLight);
+
+			loader = new (class extends VRMLLoader {
+				load(url, onLoad, onProgress, onError) {
+					window.performance.mark(`${url}-parse-start`)
+					return super.load(url, function (loaded) {
+						const parsed = window.performance.measure(`${url}-parse`, `${url}-parse-start`)
+						console.log(`${url} loaded in ${parsed.duration}ms`)
+
+						modelFolder.add(loaded, 'visible').name(url)
+
+						onLoad(loaded)
+					}, onProgress, onError)
+				}
+			})();
+			loadAsset(params.asset);
+
+
+			// renderer
+
+			renderer = new THREE.WebGLRenderer({
+				// alpha: true,
+			});
+			renderer.setPixelRatio(window.devicePixelRatio);
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setAnimationLoop(animate);
+			document.body.appendChild(renderer.domElement);
+
+			// controls
+
+			controls = new OrbitControls(camera, renderer.domElement);
+			controls.minDistance = 0.001;
+			controls.maxDistance = 200;
+			controls.enableDamping = true;
+
+			//
+
+			stats = new Stats();
+			document.body.appendChild(stats.dom);
+
+			//
+
+			window.addEventListener('resize', onWindowResize);
+
+
+		}
+
+		function loadAsset(asset) {
+
+			loader.load(asset, function (object) {
+
+				vrmlScene = object;
+				scene.add(object);
+				controls.reset();
+
+			});
+
+		}
+
+		function onWindowResize() {
+
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize(window.innerWidth, window.innerHeight);
+
+		}
+
+		let objCount;
+		function updateObjCount() {
+			objCount = 0;
+			scene.traverseVisible(function () {
+				objCount++;
+			})
+		}
+
+		function animate() {
+
+			controls.update(); // to support damping
+
+			renderer.render(scene, camera);
+
+			stats.update();
+			updateObjCount();
+
+			guiStatsEl.innerHTML = [
+
+				'<i>Object count</i>: ' + objCount,
+				'<i>GPU draw calls</i>: ' + renderer.info.render.calls,
+				// '<i>GPU memory</i>: ' + formatBytes(api.count * 16 + geometryByteLength, 2)
+
+			].join('<br/>');
+
+		}
+
+	</script>
+
+</body>
+
+</html>
