@@ -389,10 +389,20 @@ dependencies = [
 name = "jtag"
 version = "0.1.0"
 dependencies = [
+ "embedded-hal",
  "esp-alloc",
  "esp-backtrace",
  "esp-hal",
  "esp-println",
+ "jtag-taps",
+]
+
+[[package]]
+name = "jtag-taps"
+version = "0.5.0"
+source = "git+https://github.com/rustbox/jtag-taps/?rev=3a29ca49806adac38d16c043e513ac86bf9148b5#3a29ca49806adac38d16c043e513ac86bf9148b5"
+dependencies = [
+ "embedded-hal",
 ]
 
 [[package]]
