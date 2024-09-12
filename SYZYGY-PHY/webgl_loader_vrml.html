@@ -33,13 +33,35 @@
 		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 		import { VRMLLoader } from 'three/addons/loaders/VRMLLoader.js';
 		import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+		import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
-		let camera, scene, renderer, stats, controls, loader, guiStatsEl;
+		let camera, scene, optimized, renderer, stats, controls, loader, guiStatsEl, objCount;
 
-		const params = {
-			// asset: 'house.wrl',
-			asset: 'SYZYGY-PHY.wrl',
-		};
+		const params = [
+			{
+				asset: 'SYZYGY-PHY.wrl',
+				scale: 1.0,
+			},
+			{
+				asset: 'shapes3D/GPY111.wrl',
+				scale: 0.01,
+			},
+			{
+				asset: 'shapes3D/ARJM11C7-502-KB-EW2.wrl',
+				scale: 0.003,
+			},
+			{
+				asset: 'shapes3D/R_0805_2012Metric.wrl',
+				scale: 0.03,
+			},
+			{
+				asset: 'shapes3D/C_0805_2012Metric.wrl',
+				scale: 0.03,
+			},
+		][0];
+
+		// params['mode'] = 'default';
+		params['mode'] = 'opt';
 
 		const assets = [
 			'house.wrl',
@@ -56,15 +78,16 @@
 			'shapes3D/TXV0106BQBR.wrl',
 		];
 
-		let vrmlScene;
+		let vrmlScene, axesHelper, dirLight, ambientLight;
 
 		init();
 
+
+
 		function init() {
 
-			// camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1e10);
-			// camera.position.set(- 10, 5, 10);
 			camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1e-3, 1);
+			// camera.position.set(0, 0, 0.026);
 			camera.position.set(0, 0, -0.04);
 
 			const gui = new GUI({
@@ -73,7 +96,7 @@
 
 			//
 
-			gui.add(params, 'asset', assets).onChange(function (value) {
+			function reload(value) {
 
 				if (vrmlScene) {
 
@@ -90,10 +113,24 @@
 				}
 
 				if (modelFolder.$children) modelFolder.$children.replaceChildren();
+				// console.log(modelFolder.$children);
 
 				loadAsset(value);
 
+			}
+
+			gui.add(params, 'asset', assets).onChange(reload);
+			gui.add(params, 'mode', ['default', 'opt']).onChange(function () {
+				reload(params.asset)
 			});
+
+			gui.add(params, 'scale', 1e-3, 10).onChange(function (value) {
+				vrmlScene.scale.setScalar(value)
+			})
+
+			gui.add({
+				'sceneChanged': sceneChanged
+			}, 'sceneChanged')
 
 			const perfFolder = gui.addFolder('Performance');
 
@@ -106,16 +143,18 @@
 			const modelFolder = gui.addFolder('Models');
 
 			scene = new THREE.Scene();
+			optimized = new THREE.Scene();
+
 			scene.add(camera);
 
-			var axesHelper = new THREE.AxesHelper(5);
+			axesHelper = new THREE.AxesHelper(5);
 			scene.add(axesHelper);
 			// light
 
-			const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+			ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
 			scene.add(ambientLight);
 
-			const dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
+			dirLight = new THREE.DirectionalLight(0xffffff, 2.0);
 			dirLight.position.set(200, 200, 200);
 			scene.add(dirLight);
 
@@ -126,19 +165,19 @@
 						const parsed = window.performance.measure(`${url}-parse`, `${url}-parse-start`)
 						console.log(`${url} loaded in ${parsed.duration}ms`)
 
-						modelFolder.add(loaded, 'visible').name(url)
+						modelFolder.add(loaded, 'visible').name(url).onChange(sceneChanged)
 
 						onLoad(loaded)
 					}, onProgress, onError)
 				}
 			})();
-			loadAsset(params.asset);
 
 
 			// renderer
 
 			renderer = new THREE.WebGLRenderer({
-				// alpha: true,
+				alpha: true,
+				antialiasing: true,
 			});
 			renderer.setPixelRatio(window.devicePixelRatio);
 			renderer.setSize(window.innerWidth, window.innerHeight);
@@ -151,6 +190,9 @@
 			controls.minDistance = 0.001;
 			controls.maxDistance = 200;
 			controls.enableDamping = true;
+
+			loadAsset(params.asset);
+
 
 			//
 
@@ -169,11 +211,202 @@
 			loader.load(asset, function (object) {
 
 				vrmlScene = object;
+				vrmlScene.scale.setScalar(params.scale)
 				scene.add(object);
 				controls.reset();
 
+				vrmlScene.traverse(function (object) {
+					object.addEventListener('childadded', sceneChanged)
+					// object.addEventListener('childremoved', sceneChanged)
+				})
+
+				sceneChanged()
+
 			});
 
+		}
+
+		function sceneChanged() {
+			window.performance.mark(`opt-start`)
+			let totals = {};
+			scene.traverse(function (obj) {
+				totals[obj.constructor.name] ||= 0;
+				totals[obj.constructor.name]++;
+			})
+			console.log(totals)
+
+			if (optimized) {
+				optimized.traverse(function (object) {
+
+					if (object.material) object.material.dispose();
+					if (object.material && object.material.map) object.material.map.dispose();
+					if (object.geometry) object.geometry.dispose();
+
+				});
+			}
+
+			optimized = new THREE.Scene();
+
+
+			let materials = {};
+			let geometries = {};
+
+			let propsCount = {}
+
+			function walk(obj, xform) {
+
+				if (!obj || !obj.visible) return;
+
+				obj.updateMatrix();
+
+				if (obj instanceof THREE.Mesh) {
+					if (!obj.material.visible) return;
+					// const key = obj.material.name;
+					// if (key == "" /*|| obj.name == 'SHAPE_13'*/) {
+					if (!obj.material.isMeshPhongMaterial) {
+						const toAdd = obj.clone()
+						toAdd.applyMatrix4(xform)
+						optimized.add(toAdd)
+						return;
+					}
+					for (const k of ['shininess']) {
+						propsCount[k] ||= {}
+						propsCount[k][obj.material[k]] ||= 0
+						propsCount[k][obj.material[k]]++
+					}
+					const key = JSON.stringify([
+						// these seem to be the most typical properties (for kicad models)
+						obj.material.color,
+						// these are defined on the VRML materials, but obj.material.color is a unique key
+						// (as in: for every color C, there is only one setting for these properties)
+						// obj.material.emissive,
+						// obj.material.aoMapIntensity, // doesn't actually do anything, VRML `ambientIntensity` is not supported
+						// obj.material.shininess,
+						// obj.material.specular,
+
+						// and then for completeness
+						// MeshPhongMaterial properties
+						// cf. https://threejs.org/docs/#api/en/materials/MeshPhongMaterial
+						obj.material.aoMapIntensity,
+						obj.material.bumpScale,
+						obj.material.combine,
+						obj.material.displacementScale,
+						obj.material.displacementBias,
+						obj.material.emissiveIntensity,
+						obj.material.envMapRotation,
+						obj.material.flatShading,
+						obj.material.fog,
+						obj.material.lightMapIntensity,
+						obj.material.normalMapType,
+						obj.material.normalScale,
+						obj.material.reflectivity,
+						obj.material.refractionRatio,
+						obj.material.wireframe,
+						obj.material.wireframeLinecap,
+						obj.material.wireframeLinejoin,
+						obj.material.wireframeLinewidth,
+
+						// base Material properties
+						// cf. https://threejs.org/docs/index.html#api/en/materials/Material
+						obj.material.alphaHash,
+						obj.material.alphaToCoverage,
+						obj.material.blendAlpha,
+						obj.material.blendColor,
+						obj.material.blendDst,
+						obj.material.blendDstAlpha,
+						obj.material.blendEquation,
+						obj.material.blendEquationAlpha,
+						obj.material.blending,
+						obj.material.blendSrc,
+						obj.material.blendSrcAlpha,
+						obj.material.clipIntersection,
+						obj.material.clipShadows,
+						obj.material.colorWrite,
+						obj.material.defines,	// an Object
+						obj.material.depthFunc,
+						obj.material.depthTest,
+						obj.material.depthWrite,
+						obj.material.forceSinglePass,
+						obj.material.stencilWriteMask,
+						obj.material.stencilFunc,
+						obj.material.stencilRef,
+						obj.material.stencilFuncMask,
+						obj.material.stencilFail,
+						obj.material.stencilZFail,
+						obj.material.stencilZPass,
+						// skip these props
+						// obj.material.id
+						// obj.material.name
+						// obj.material.needsUpdate
+						obj.material.opacity,
+						obj.material.polygonOffset,
+						obj.material.polygonOffsetFactor,
+						obj.material.polygonOffsetUnits,
+						obj.material.precision,
+						obj.material.premultipliedAlpha,
+						obj.material.dithering,
+						obj.material.shadowSide,
+						obj.material.side,
+						obj.material.toneMapped,
+						obj.material.transparent,
+						// skip these props
+						// obj.material.type,
+						// obj.material.uuid,
+						// obj.material.version,
+						obj.material.vertexColors,
+
+						// and some Textures (probably bad to jsonify if not null)
+						obj.material.alphaMap,
+						obj.material.aoMap,
+						obj.material.bumpMap,
+						obj.material.displacementMap,
+						obj.material.envMap,
+						obj.material.lightMap,
+						obj.material.map,
+						obj.material.normalMap,
+						obj.material.specularMap,
+
+						// and an Array
+						obj.material.clippingPlanes,
+					]);
+
+					materials[key] ||= obj.material.clone();
+
+					const geo = obj.geometry.clone();
+					geo.applyMatrix4(xform).applyMatrix4(obj.matrix);
+					geometries[key] ||= [];
+					geometries[key].push(geo)
+					return;
+				}
+
+				const child_xform = xform.clone();
+				child_xform.multiply(obj.matrix);
+
+				const children = obj.children;
+
+				for (let i = 0, l = children.length; i < l; i++) walk(children[i], child_xform)
+			}
+
+			walk(scene, scene.matrix.clone());
+
+			// console.log(materials, geometries)
+			console.log(propsCount)
+
+			optimized.add(axesHelper.clone())
+			optimized.add(dirLight.clone())
+			optimized.add(ambientLight.clone())
+
+			if (params.mode == 'opt')
+				optimized.add(camera)
+
+			for (const key in materials) {
+				const mergedGeometry = BufferGeometryUtils.mergeGeometries(geometries[key]);
+
+				optimized.add(new THREE.Mesh(mergedGeometry, materials[key]))
+			}
+
+			const opt = window.performance.measure(`opt`, `opt-start`)
+			console.log(`graph optimized in ${opt.duration}ms`)
 		}
 
 		function onWindowResize() {
@@ -185,10 +418,9 @@
 
 		}
 
-		let objCount;
 		function updateObjCount() {
 			objCount = 0;
-			scene.traverseVisible(function () {
+			(params.mode == 'opt' ? optimized : scene).traverseVisible(function () {
 				objCount++;
 			})
 		}
@@ -197,7 +429,7 @@
 
 			controls.update(); // to support damping
 
-			renderer.render(scene, camera);
+			renderer.render((params.mode == 'opt' ? optimized : scene), camera);
 
 			stats.update();
 			updateObjCount();
@@ -211,6 +443,7 @@
 			].join('<br/>');
 
 		}
+		console.log(renderer.info)
 
 	</script>
 
