@@ -44,8 +44,9 @@ esp-hal = { version = "0.19.0", features = ["esp32c3", "embedded-hal"] }
 esp-println = { version = "0.10.0", features = ["esp32c3"] }
 # log = { version = "0.4.21" }
 esp-alloc = { version = "0.4.0" }
-jtag-taps = {git = "https://github.com/rustbox/jtag-taps/", rev = "3a29ca49806adac38d16c043e513ac86bf9148b5", default-features = false}
-embedded-hal = "1.0.0"
+# jtag-taps = {git = "https://github.com/rustbox/jtag-taps/", rev = "3a29ca49806adac38d16c043e513ac86bf9148b5", default-features = false}
+jtag-taps = {path = "../../jtag-taps", default-features = false}
+
 
 [profile.dev]
 opt-level = "s"

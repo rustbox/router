@@ -1,14 +1,17 @@
 #![no_std]
 #![no_main]
+#![feature(riscv_ext_intrinsics)]
+#![feature(generic_const_exprs)]
 
 extern crate alloc;
 use alloc::borrow::ToOwned;
-use alloc::vec;
-use esp_hal::gpio::{Input, Level, Output, Pull};
-use jtag_taps::statemachine::{JtagSM, Register};
-use jtag_taps::taps::Taps;
+use alloc::vec::{self, Vec};
+use esp_hal::i2c::I2C;
+use mdio::{Controller, MDIOFrame};
+use core::arch::riscv32::wfi;
 use core::mem::MaybeUninit;
 use esp_backtrace as _;
+use esp_hal::gpio::{Input, Level, Output, Pull};
 use esp_hal::spi::master::HalfDuplexReadWrite;
 use esp_hal::{
     clock::ClockControl,
@@ -22,8 +25,12 @@ use esp_hal::{
     },
     system::SystemControl,
 };
-use embedded_hal::digital::{OutputPin, InputPin};
 use esp_println::{print, println};
+use jtag_taps::cable::Cable;
+use jtag_taps::statemachine::{JtagSM, Register};
+use jtag_taps::taps::Taps;
+
+mod mdio;
 
 #[entry]
 fn main() -> ! {
@@ -43,52 +50,40 @@ fn main() -> ! {
     }
 
     println!("Hello");
+    println!("Clock: {}", &clocks.cpu_clock);
 
     let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
 
-    let clock = Output::new(io.pins.gpio0, Level::Low);
-    let tdi = Output::new(io.pins.gpio1, Level::Low);
-    let tdo = Input::new(io.pins.gpio2, Pull::Down);
-    let tms = Output::new(io.pins.gpio3, Level::Low);
-
-    let mut cable = jtag_taps::cable::gpio::Gpio::new(500, clock, tdi, tdo, tms, delay);
-    let jtag = JtagSM::new(&mut cable);
-    let mut taps = Taps::new(jtag);
-
-    // taps.detect();
     
-    let ir = vec![235, 0];
-    taps.select_tap(0, &ir);
-    let readback = taps.read_ir();
-    print!("ir: ");
-    for x in readback {
-        print!("{:x} ", x);
-    }
+    let mdc = io.pins.gpio0;
+    let mdio = io.pins.gpio1;
 
-    // let mut spi = Spi::new_half_duplex(peripherals.SPI2, 100.kHz(), SpiMode::Mode0, &clocks)
-    //     .with_pins(
-    //         Some(sclk),
-    //         Some(mosi),
-    //         Some(miso),
-    //         Some(sio2),
-    //         Some(sio3),
-    //         Some(cs),
-    //     );
+    let mut control = Controller::new(100, delay, mdc, mdio);
+
+    let PHY = 0b00000010;
+    let h = MDIOFrame::<2>::new(PHY, 0x02);
+    println!("header: {:?}", h.header());
+    println!("size: {}", h.header().len());
+    let v = control.frame_read(h);
+    println!("STD_PHYID1: {}", v);
+
 
     loop {
-        // println!("{}", "hello, world!".to_owned());
 
-        // let mut data = [0u8; 2];
-        // spi.read(
-        //     SpiDataMode::Single,
-        //     Command::Command8(0x90, SpiDataMode::Single),
-        //     Address::Address24(0x000000, SpiDataMode::Single),
-        //     0,
-        //     &mut data,
-        // )
-        // .unwrap();
-        // println!("Single {:x?}", data);
-
-        // delay.delay(500.millis());
+        unsafe {
+            wfi();
+        }
     }
+}
+
+fn device_id<T: Cable>(cable: &mut T) -> Vec<u8> {
+    println!("Resetting");
+    cable.change_mode(&[1, 1, 1, 1, 1], true);
+    println!("Set to Shift IR");
+    cable.change_mode(&[0, 1, 1, 0, 0], false);
+    println!("Shift in 0b10001 command");
+    cable.write_data(&[0b10001000], 5, true);
+    println!("Set to Read data");
+    cable.change_mode(&[1, 1, 1, 0, 0], false);
+    cable.read_data(32)
 }
