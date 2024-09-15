@@ -6,12 +6,18 @@
 extern crate alloc;
 use alloc::borrow::ToOwned;
 use alloc::vec::{self, Vec};
+use embedded_hal::digital::v2::IoPin;
+use esp_hal::delay::MicrosDurationU64;
 use esp_hal::i2c::I2C;
-use mdio::{Controller, MDIOFrame};
+use esp_hal::timer::timg::{Timer, TimerGroup};
+use esp_hal::timer::{ErasedTimer, PeriodicTimer};
+use mdio::miim::{Read, Write};
 use core::arch::riscv32::wfi;
+use core::convert::Infallible;
 use core::mem::MaybeUninit;
+use core::time::Duration;
 use esp_backtrace as _;
-use esp_hal::gpio::{Input, Level, Output, Pull};
+use esp_hal::gpio::{GpioPin, Input, Level, Output, Pull};
 use esp_hal::spi::master::HalfDuplexReadWrite;
 use esp_hal::{
     clock::ClockControl,
@@ -30,7 +36,9 @@ use jtag_taps::cable::Cable;
 use jtag_taps::statemachine::{JtagSM, Register};
 use jtag_taps::taps::Taps;
 
-mod mdio;
+use mdio::bb::Mdio;
+
+mod md;
 
 #[entry]
 fn main() -> ! {
@@ -56,23 +64,109 @@ fn main() -> ! {
 
     
     let mdc = io.pins.gpio0;
-    let mdio = io.pins.gpio1;
+    let mut mdio = io.pins.gpio1;
+    // mdio.set_to_open_drain_output(
+    //     unsafe { core::mem::transmute(()) }
+    // );
 
-    let mut control = Controller::new(100, delay, mdc, mdio);
+    let g = TimerGroup::new(peripherals.TIMG0, &clocks, None);
+    let d = MicrosDurationU64::kHz(100);
+    let mut t = PeriodicTimer::new(ErasedTimer::Timg0Timer0(g.timer0));
+    t.start(d).unwrap();
 
-    let PHY = 0b00000010;
-    let h = MDIOFrame::<2>::new(PHY, 0x02);
-    println!("header: {:?}", h.header());
-    println!("size: {}", h.header().len());
-    let v = control.frame_read(h);
-    println!("STD_PHYID1: {}", v);
+    // let mut m = Mdio::new(IOPin{pin: mdio}, OutPin{pin: mdc}, t);
 
+    let PHY = 0x03;
+    let status_reg = 0x02;
+    
+    // for phy in 0..32 {
+    //     let x = m.read(phy, 0b00010).unwrap();
+    //     println!("x = {x}");
+    // }
+    let led_reg: u8 = 0x1b;
+    let ledvalue_original: u16= 0x1e01;
+    
+    let led: u16 = 0b0001_0111_0000_0000;
+
+    
+    let mut cont = md::Controller::new(100, delay, mdc, mdio);
+    // for reg in 0..32 {
+
+    //     let mm  = md::MDIOFrame::<2>::new(PHY, reg);
+    //     let x = cont.frame_read(mm);
+    //     println!("addr: {:x} -> x = {:x}", reg, x);
+    // }
+    const PERF_TEST_DATA: u16 = 0b010_1_0000_0000_0001;
+    const TEST_REG: u8 =  0x13;
+    cont.frame_write(md::MDIOFrame::<2>::new(PHY, TEST_REG), PERF_TEST_DATA);
+    // let ledv = cont.frame_read(md::MDIOFrame::<2>::new(PHY, led_reg));
+    // println!("LED Register: {:x}", ledv);
 
     loop {
 
         unsafe {
             wfi();
         }
+    }
+}
+
+struct IOPin {
+    pin: GpioPin<1>
+}
+
+struct OutPin {
+    pin: GpioPin<0>
+}
+
+impl embedded_hal::digital::v2::OutputPin for OutPin {
+    type Error = ();
+    
+    fn set_high(&mut self) -> Result<(), Self::Error> {
+        Ok(self.pin.set_high())
+    }
+
+    fn set_low(&mut self) -> Result<(), Self::Error> {
+        Ok(self.pin.set_low())
+    }
+
+    fn set_state(&mut self, state: embedded_hal::digital::v2::PinState) -> Result<(), Self::Error> {
+        let b = match state {
+            embedded_hal::digital::v2::PinState::High => true,
+            embedded_hal::digital::v2::PinState::Low => false,
+        };
+        Ok(self.pin.set_state(b))
+    }
+}
+
+impl embedded_hal::digital::v2::InputPin for IOPin {
+    type Error = ();
+
+    fn is_high(&self) -> Result<bool, Self::Error> {
+        Ok(self.pin.is_high())
+    }
+
+    fn is_low(&self) -> Result<bool, Self::Error> {
+        Ok(self.pin.is_low())
+    }
+}
+
+impl embedded_hal::digital::v2::OutputPin for IOPin {
+    type Error = ();
+    
+    fn set_high(&mut self) -> Result<(), Self::Error> {
+        Ok(self.pin.set_high())
+    }
+
+    fn set_low(&mut self) -> Result<(), Self::Error> {
+        Ok(self.pin.set_low())
+    }
+
+    fn set_state(&mut self, state: embedded_hal::digital::v2::PinState) -> Result<(), Self::Error> {
+        let b = match state {
+            embedded_hal::digital::v2::PinState::High => true,
+            embedded_hal::digital::v2::PinState::Low => false,
+        };
+        Ok(self.pin.set_state(b))
     }
 }
 

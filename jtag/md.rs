@@ -169,13 +169,13 @@ impl<'a> Controller<'a> {
     }
 
     fn set_write_mode(&mut self) {
-        println!("Setting to write");
+        // println!("Setting to write");
         self.rw_state = RWState::Writing;
         self.mdio.set_as_output();
     }
 
     fn set_read_mode(&mut self) {
-        println!("Setting to read");
+        // println!("Setting to read");
         self.rw_state = RWState::Reading;
         self.mdio.set_as_input(Pull::None);
     }
@@ -245,7 +245,7 @@ impl<'a> Controller<'a> {
         self.set_write_mode();
         // Write the header bits
         for b in header {
-            println!("W: {:?}", b);
+            // println!("W: {:?}", b);
             self.write_bit(b);
         }
 
