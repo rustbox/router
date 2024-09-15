@@ -231,9 +231,12 @@ The general idea is to "select an [error] event" by writing to the top half of t
 We'd like both counters to line up with the status from `l2perf`. If we see:
 
 - 0 rx, 0 tx -> our circuit is bad; and it's so bad, apparently, that it makes the LEDs wobble?
+    - try adding `-e 0x5DC` to `l2perf` arguments (both tx and rx); P(success|0 rx, 0 tx) seems quite low, as the PCS shouldn't be checking the ethertype field, but it's an easy test
 - 0 rx, nonzero tx -> the GPY is pulling things out of the ether, we're _very_ confused
 - nonzero rx, 0 tx -> the GPY is not actually in test mode
     - try togglng the link ("activated at the next link-up")?
+    - try adding `-e 0x5DC` to `l2perf` arguments (both tx and rx); again, the PCS shouldn't need the length, but it's easy
+    - try terminating the xMII pins, somehow? another low P(success|...), but if the external circuit is somehow causing the PCS loopback to not function then that would invalidate the test
 - nonzero rx, nonzero tx -> the GPY is probably functioning as we expect, but the return packets are getting eaten by either the host-side PHY or the linux kernel
     - try setting the destination MAC to something not-zero (`00:...:00`); maybe a broadcast address? the address of the interface itself (conveniently available at `/sys/class/net/INTERFACE/address`)?
     - try enabling "promiscuous mode" by way of: `sudo ip link set INTERFACE promisc on`, and/or using a tool like wireshark to observe the packets?
