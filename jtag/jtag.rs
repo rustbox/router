@@ -11,6 +11,7 @@ use esp_hal::delay::MicrosDurationU64;
 use esp_hal::i2c::I2C;
 use esp_hal::timer::timg::{Timer, TimerGroup};
 use esp_hal::timer::{ErasedTimer, PeriodicTimer};
+use md::Controller;
 use mdio::miim::{Read, Write};
 use core::arch::riscv32::wfi;
 use core::convert::Infallible;
@@ -39,6 +40,9 @@ use jtag_taps::taps::Taps;
 use mdio::bb::Mdio;
 
 mod md;
+
+const PHY: u8 = 0x03;
+
 
 #[entry]
 fn main() -> ! {
@@ -76,7 +80,6 @@ fn main() -> ! {
 
     // let mut m = Mdio::new(IOPin{pin: mdio}, OutPin{pin: mdc}, t);
 
-    let PHY = 0x03;
     let status_reg = 0x02;
     
     // for phy in 0..32 {
@@ -96,17 +99,57 @@ fn main() -> ! {
     //     let x = cont.frame_read(mm);
     //     println!("addr: {:x} -> x = {:x}", reg, x);
     // }
-    const PERF_TEST_DATA: u16 = 0b010_1_0000_0000_0001;
+    print_standard_regs(&mut cont);
+    const TX_COUNT_FRAMES: u16 = 0b0000_0101_00000000;
+    const TX_ERROR_COUNT: u16 = 0b0000_0100_00000000;
+    const RX_COUNT_FRAMES: u16 = 0b0000_0001_00000000;
+    const RX_ERROR_COUNT: u16 = 0b0000_0000_00000000;
+    const TPG_EN: u16 = 0x0001;
+    const TPG_START: u16 = 0x0003;
+    const FETL: u16 = 0b101_0_0000_0000_0001;
+    const PERF_TEST_DATA: u16 = 0xa001; //(0b010_0_0000_0000_0001_u16.wrapping_sub(1)) >> 1 ;
     const TEST_REG: u8 =  0x13;
-    cont.frame_write(md::MDIOFrame::<2>::new(PHY, TEST_REG), PERF_TEST_DATA);
-    // let ledv = cont.frame_read(md::MDIOFrame::<2>::new(PHY, led_reg));
-    // println!("LED Register: {:x}", ledv);
+    const COUNT_REG: u8 = 0x15;
+    const TEST_PACKET_CTRL: u8 = 0x1C;
+    const TEST_PACKET_DATA: u8 = 0x1D;
+
+    // println!("Using Default test data");
+    // cont.frame_write(md::MDIOFrame::<2>::new(PHY, COUNT_REG), TX_COUNT_FRAMES);
+    // let x = cont.frame_read(md::MDIOFrame::<2>::new(PHY, COUNT_REG));
+    // println!("Wrote: {:x}, {:x}", TX_COUNT_FRAMES, x);
+
+    // cont.frame_write(md::MDIOFrame::<2>::new(PHY, TEST_PACKET_CTRL), TPG_EN);
+    // let x = cont.frame_read(md::MDIOFrame::<2>::new(PHY, TEST_PACKET_CTRL));
+    // println!("Wrote: {:x}, {:x}", TPG_EN, x);
+
+    // cont.frame_write(md::MDIOFrame::<2>::new(PHY, TEST_PACKET_CTRL), TPG_START);
+    // let x = cont.frame_read(md::MDIOFrame::<2>::new(PHY, TEST_PACKET_CTRL));
+    // println!("Wrote: {:x}, {:x}", TPG_START, x);
+    // for t in 0..8 {
+    //     let hi3 = t << 13;
+    //     let reg_value = hi3 + 1;
+    //     let f = md::MDIOFrame::<2>::new(PHY, TEST_REG);
+        
+    //     cont.frame_write(f.clone(), reg_value);
+    //     let x = cont.frame_read(f);
+    //     println!("Wrote: {:x}, {:x}", reg_value, x);
+    //     delay.delay_millis(2500);
+    // }
+    
 
     loop {
 
         unsafe {
             wfi();
         }
+    }
+}
+
+fn print_standard_regs(cont: &mut Controller) {
+    for r in 0..32 {
+        let f = md::MDIOFrame::<2>::new(PHY, r);
+        let x = cont.frame_read(f);
+        println!("Reg {:x} = {:x}", r, x);
     }
 }
 

@@ -184,10 +184,7 @@ impl<'a> Controller<'a> {
     /// from MDIO, we simply activate the clock
     pub fn write_z(&mut self, times: u8) {
         // Set MDIO as HIGH Z by putting pin in Read mode
-        // if let RWState::Writing = self.rw_state {
-        //     self.rw_state = RWState::Reading;
-        //     self.mdio.set_as_input(Pull::None);
-        // }
+        // self.set_read_mode();
         // Clock `times`, high low, each high will clock out a "Z"
         for _ in 0..times {
             self.half_cycle_high();
