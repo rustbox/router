@@ -5,9 +5,9 @@
 #![feature(generic_const_exprs)]
 #![allow(clippy::unusual_byte_groupings)]
 #![allow(unused_variables)]
-#![allow(unused_constants)]
 
 extern crate alloc;
+use alloc::format;
 use core::mem::MaybeUninit;
 use esp_backtrace as _;
 use esp_hal::timer::timg::TimerGroup;
@@ -95,7 +95,6 @@ fn main() -> ! {
     //     let x = cont.frame_read(mm);
     //     println!("addr: {:x} -> x = {:x}", reg, x);
     // }
-    print_standard_regs(&mut cont);
     const TX_COUNT_FRAMES: u16 = 0b0000_0101_00000000;
     const TX_ERROR_COUNT: u16 = 0b0000_0100_00000000;
     const RX_COUNT_FRAMES: u16 = 0b0000_0001_00000000;
@@ -148,32 +147,52 @@ fn main() -> ! {
             .unwrap();
 
         while let Ok(line) = editor.readline(prompt, &mut uart0) {
-            println!("Read: '{}'", line);
+            const N: usize = 4;
+            let mut split = [""; N];
+            let n = line.splitn(N, ' ').collect_slice(&mut split[..]);
+            let split = &split[..n];
+            match split {
+                ["reset"] => println!("todo: reset!"),
+
+                ["read", "all"] => print_standard_regs(&mut cont),
+                ["read", reg] => {
+                    let reg = match reg {
+                        r if r.starts_with("0x") => u8::from_str_radix(&r[2..], 16)
+                            .map_err(|err| format!("couldn't read {:?} as hex: {}", reg, err)),
+
+                        r if r.starts_with("0o") => u8::from_str_radix(&r[2..], 8)
+                            .map_err(|err| format!("couldn't read {:?} as octal: {}", reg, err)),
+
+                        r if r.starts_with("0b") => u8::from_str_radix(&r[2..], 2)
+                            .map_err(|err| format!("couldn't read {:?} as binary: {}", reg, err)),
+
+                        #[allow(clippy::from_str_radix_10)]
+                        _ => u8::from_str_radix(reg, 10)
+                            .map_err(|err| format!("couldn't read {:?}: {}", reg, err)),
+                    };
+
+                    if let Err(err) = &reg {
+                        println!("error: {}", err);
+                        continue;
+                    }
+
+                    let reg = reg.unwrap();
+                    let read = cont.frame_read(md::MDIOFrame::<2>::new(PHY, reg));
+
+                    println!("read 0x{:x}: 0x{:x}", reg, read);
+                }
+                ["read", ..] => {
+                    println!("error: read: unrecognized arguments: {:?}", &split[1..]);
+                    println!("usage: read [all|REG])");
+                }
+
+                [other, ..] => {
+                    println!("error: unrecognized: {}", other)
+                }
+                [] => {}
+            }
         }
     }
-
-    // loop {
-    //     match block!(uart0.read_byte()) {
-    //         Ok(b'\n') | Ok(b'\r') => println!(),
-    //         Ok(ch) => {
-    //             print!("{}", ch as char);
-    //             continue;
-    //         }
-    //         Err(err) => {
-    //             println!("error: {:?}", err);
-    //             continue;
-    //         }
-    //     };
-
-    //     cont.frame_write(md::MDIOFrame::<2>::new(PHY, TEST_REG), PERF_TEST_DATA);
-
-    //     println!("Signaled! sent 0x{:x}", PERF_TEST_DATA);
-
-    //     println!(
-    //         "read 0x{:x}",
-    //         cont.frame_read(md::MDIOFrame::<2>::new(PHY, TEST_REG))
-    //     );
-    // }
 }
 
 struct UartWrapper<'d, T> {
@@ -316,3 +335,20 @@ impl embedded_hal::digital::v2::OutputPin for IOPin {
 //     cable.change_mode(&[1, 1, 1, 0, 0], false);
 //     cable.read_data(32)
 // }
+
+// see archived: https://github.com/kchmck/collect_slice
+pub trait CollectSlice: Iterator {
+    fn collect_slice(&mut self, slice: &mut [Self::Item]) -> usize;
+}
+
+impl<I: ?Sized> CollectSlice for I
+where
+    I: Iterator,
+{
+    fn collect_slice(&mut self, slice: &mut [Self::Item]) -> usize {
+        slice.iter_mut().zip(self).fold(0, |count, (dest, item)| {
+            *dest = item;
+            count + 1
+        })
+    }
+}
