@@ -9,4 +9,4 @@ name = "tools"
 path = "./tools.rs"
 
 [dependencies]
-espflash = { version = "3.1.1", artifact = "bin" }
+espflash = { git = "https://github.com/rustbox/espflash", rev = "5c00054bdc2cb4fa07c8e6216d8aca3949825079", artifact = "bin" }

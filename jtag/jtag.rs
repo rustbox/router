@@ -1,48 +1,39 @@
 #![no_std]
 #![no_main]
 #![feature(riscv_ext_intrinsics)]
+#![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
+#![allow(clippy::unusual_byte_groupings)]
+#![allow(unused_variables)]
+#![allow(unused_constants)]
 
 extern crate alloc;
-use alloc::borrow::ToOwned;
-use alloc::vec::{self, Vec};
-use embedded_hal::digital::v2::IoPin;
-use esp_hal::delay::MicrosDurationU64;
-use esp_hal::i2c::I2C;
-use esp_hal::timer::timg::{Timer, TimerGroup};
-use esp_hal::timer::{ErasedTimer, PeriodicTimer};
-use md::Controller;
-use mdio::miim::{Read, Write};
-use core::arch::riscv32::wfi;
-use core::convert::Infallible;
 use core::mem::MaybeUninit;
-use core::time::Duration;
 use esp_backtrace as _;
-use esp_hal::gpio::{GpioPin, Input, Level, Output, Pull};
-use esp_hal::spi::master::HalfDuplexReadWrite;
+use esp_hal::timer::timg::TimerGroup;
+use esp_hal::timer::{ErasedTimer, PeriodicTimer};
+use esp_hal::uart;
+use esp_hal::uart::Uart;
+use esp_hal::uart::{UartRx, UartTx};
 use esp_hal::{
-    clock::ClockControl,
-    delay::Delay,
-    gpio::Io,
-    peripherals::Peripherals,
-    prelude::*,
-    spi::{
-        master::{Address, Command, Spi},
-        SpiDataMode, SpiMode,
-    },
+    clock::ClockControl, delay::Delay, gpio::Io, peripherals::Peripherals, prelude::*,
     system::SystemControl,
 };
-use esp_println::{print, println};
-use jtag_taps::cable::Cable;
-use jtag_taps::statemachine::{JtagSM, Register};
-use jtag_taps::taps::Taps;
+use esp_hal::{gpio::GpioPin, Blocking};
+use esp_println::println;
+use fugit::TimerRateU64;
+use md::Controller;
+use nb::block;
+use noline::builder::EditorBuilder;
 
-use mdio::bb::Mdio;
+// use mdio::miim::{Read, Write};
+// use jtag_taps::cable::Cable;
+// use jtag_taps::statemachine::{JtagSM, Register};
+// use jtag_taps::taps::Taps;
 
-mod md;
+pub mod md;
 
 const PHY: u8 = 0x03;
-
 
 #[entry]
 fn main() -> ! {
@@ -61,40 +52,45 @@ fn main() -> ! {
         ALLOCATOR.init(HEAP.as_mut_ptr() as *mut u8, HEAP_SIZE);
     }
 
+    let mut io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
+
+    println!();
+    // gotta do this before we `println` any more than one byte (above), else we drop bytes in flight.
+    // (alternatively, we could block on the uart's fifos being drained, I guess?)
+    // this still messes with one of the UART registers somehow, and we get a weird byte
+    // printed (`�` in a utf-8 terminal) if we don't pre-println! once.
+    let uart0 = Uart::new_with_default_pins(
+        peripherals.UART0,
+        &clocks,
+        &mut io.pins.gpio21,
+        &mut io.pins.gpio20,
+    )
+    .unwrap();
+
     println!("Hello");
     println!("Clock: {}", &clocks.cpu_clock);
 
-    let io = Io::new(peripherals.GPIO, peripherals.IO_MUX);
-
-    
     let mdc = io.pins.gpio0;
-    let mut mdio = io.pins.gpio1;
-    // mdio.set_to_open_drain_output(
-    //     unsafe { core::mem::transmute(()) }
-    // );
+    let mdio = io.pins.gpio1;
 
     let g = TimerGroup::new(peripherals.TIMG0, &clocks, None);
-    let d = MicrosDurationU64::kHz(100);
-    let mut t = PeriodicTimer::new(ErasedTimer::Timg0Timer0(g.timer0));
-    t.start(d).unwrap();
+    let t = PeriodicTimer::new(ErasedTimer::Timg0Timer0(g.timer0));
 
-    // let mut m = Mdio::new(IOPin{pin: mdio}, OutPin{pin: mdc}, t);
+    // let mut m = Mio::new(IOPin{pin: mdio}, OutPin{pin: mdc}, t);
 
     let status_reg = 0x02;
-    
+
     // for phy in 0..32 {
     //     let x = m.read(phy, 0b00010).unwrap();
     //     println!("x = {x}");
     // }
     let led_reg: u8 = 0x1b;
-    let ledvalue_original: u16= 0x1e01;
-    
+    let ledvalue_original: u16 = 0x1e01;
+
     let led: u16 = 0b0001_0111_0000_0000;
 
-    
-    let mut cont = md::Controller::new(100, delay, mdc, mdio);
+    let mut cont = md::Controller::new(TimerRateU64::kHz(100), t, mdc, mdio);
     // for reg in 0..32 {
-
     //     let mm  = md::MDIOFrame::<2>::new(PHY, reg);
     //     let x = cont.frame_read(mm);
     //     println!("addr: {:x} -> x = {:x}", reg, x);
@@ -108,7 +104,7 @@ fn main() -> ! {
     const TPG_START: u16 = 0x0003;
     const FETL: u16 = 0b101_0_0000_0000_0001;
     const PERF_TEST_DATA: u16 = 0xa001; //(0b010_0_0000_0000_0001_u16.wrapping_sub(1)) >> 1 ;
-    const TEST_REG: u8 =  0x13;
+    const TEST_REG: u8 = 0x13;
     const COUNT_REG: u8 = 0x15;
     const TEST_PACKET_CTRL: u8 = 0x1C;
     const TEST_PACKET_DATA: u8 = 0x1D;
@@ -129,19 +125,70 @@ fn main() -> ! {
     //     let hi3 = t << 13;
     //     let reg_value = hi3 + 1;
     //     let f = md::MDIOFrame::<2>::new(PHY, TEST_REG);
-        
+
     //     cont.frame_write(f.clone(), reg_value);
     //     let x = cont.frame_read(f);
     //     println!("Wrote: {:x}, {:x}", reg_value, x);
     //     delay.delay_millis(2500);
     // }
-    
+
+    println!("Waiting for input...");
+
+    let mut uart0 = UartWrapper::from(uart0);
 
     loop {
+        let prompt = "> ";
 
-        unsafe {
-            wfi();
+        let mut buffer = [0; 128];
+        let mut history = [0; 256];
+
+        let mut editor = EditorBuilder::from_slice(&mut buffer)
+            .with_slice_history(&mut history)
+            .build_sync(&mut uart0)
+            .unwrap();
+
+        while let Ok(line) = editor.readline(prompt, &mut uart0) {
+            println!("Read: '{}'", line);
         }
+    }
+
+    // loop {
+    //     match block!(uart0.read_byte()) {
+    //         Ok(b'\n') | Ok(b'\r') => println!(),
+    //         Ok(ch) => {
+    //             print!("{}", ch as char);
+    //             continue;
+    //         }
+    //         Err(err) => {
+    //             println!("error: {:?}", err);
+    //             continue;
+    //         }
+    //     };
+
+    //     cont.frame_write(md::MDIOFrame::<2>::new(PHY, TEST_REG), PERF_TEST_DATA);
+
+    //     println!("Signaled! sent 0x{:x}", PERF_TEST_DATA);
+
+    //     println!(
+    //         "read 0x{:x}",
+    //         cont.frame_read(md::MDIOFrame::<2>::new(PHY, TEST_REG))
+    //     );
+    // }
+}
+
+struct UartWrapper<'d, T> {
+    pub rx: UartRx<'d, T, Blocking>,
+    pub tx: UartTx<'d, T, Blocking>,
+}
+
+impl<'d, T> From<Uart<'d, T, Blocking>> for UartWrapper<'d, T>
+where
+    T: uart::Instance,
+{
+    fn from(value: Uart<'d, T, Blocking>) -> Self {
+        let (tx, rx) = value.split();
+
+        Self { tx, rx }
     }
 }
 
@@ -153,23 +200,64 @@ fn print_standard_regs(cont: &mut Controller) {
     }
 }
 
-struct IOPin {
-    pin: GpioPin<1>
+#[derive(Debug)]
+struct Error(esp_hal::uart::Error);
+
+impl From<esp_hal::uart::Error> for Error {
+    fn from(value: esp_hal::uart::Error) -> Self {
+        Self(value)
+    }
 }
 
+impl embedded_io::Error for Error {
+    fn kind(&self) -> embedded_io::ErrorKind {
+        embedded_io::ErrorKind::Other
+    }
+}
+
+impl<'a, T> embedded_io::ErrorType for UartWrapper<'a, T> {
+    type Error = Error;
+}
+
+impl<'a, T: uart::Instance> embedded_io::Read for UartWrapper<'a, T> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Self::Error> {
+        buf[0] = block!(self.rx.read_byte())?;
+
+        Ok(1 + self.rx.drain_fifo(&mut buf[1..]))
+    }
+}
+
+impl<'a, T: uart::Instance> embedded_io::Write for UartWrapper<'a, T> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize, Self::Error> {
+        self.tx.write_bytes(buf).map_err(Self::Error::from)
+    }
+
+    fn flush(&mut self) -> Result<(), Self::Error> {
+        block!(self.tx.flush_tx()).map_err(Self::Error::from)
+    }
+}
+
+#[allow(dead_code)]
+struct IOPin {
+    pin: GpioPin<1>,
+}
+
+#[allow(dead_code)]
 struct OutPin {
-    pin: GpioPin<0>
+    pin: GpioPin<0>,
 }
 
 impl embedded_hal::digital::v2::OutputPin for OutPin {
     type Error = ();
-    
+
     fn set_high(&mut self) -> Result<(), Self::Error> {
-        Ok(self.pin.set_high())
+        self.pin.set_high();
+        Ok(())
     }
 
     fn set_low(&mut self) -> Result<(), Self::Error> {
-        Ok(self.pin.set_low())
+        self.pin.set_low();
+        Ok(())
     }
 
     fn set_state(&mut self, state: embedded_hal::digital::v2::PinState) -> Result<(), Self::Error> {
@@ -177,7 +265,8 @@ impl embedded_hal::digital::v2::OutputPin for OutPin {
             embedded_hal::digital::v2::PinState::High => true,
             embedded_hal::digital::v2::PinState::Low => false,
         };
-        Ok(self.pin.set_state(b))
+        self.pin.set_state(b);
+        Ok(())
     }
 }
 
@@ -195,13 +284,15 @@ impl embedded_hal::digital::v2::InputPin for IOPin {
 
 impl embedded_hal::digital::v2::OutputPin for IOPin {
     type Error = ();
-    
+
     fn set_high(&mut self) -> Result<(), Self::Error> {
-        Ok(self.pin.set_high())
+        self.pin.set_high();
+        Ok(())
     }
 
     fn set_low(&mut self) -> Result<(), Self::Error> {
-        Ok(self.pin.set_low())
+        self.pin.set_low();
+        Ok(())
     }
 
     fn set_state(&mut self, state: embedded_hal::digital::v2::PinState) -> Result<(), Self::Error> {
@@ -209,18 +300,19 @@ impl embedded_hal::digital::v2::OutputPin for IOPin {
             embedded_hal::digital::v2::PinState::High => true,
             embedded_hal::digital::v2::PinState::Low => false,
         };
-        Ok(self.pin.set_state(b))
+        self.pin.set_state(b);
+        Ok(())
     }
 }
 
-fn device_id<T: Cable>(cable: &mut T) -> Vec<u8> {
-    println!("Resetting");
-    cable.change_mode(&[1, 1, 1, 1, 1], true);
-    println!("Set to Shift IR");
-    cable.change_mode(&[0, 1, 1, 0, 0], false);
-    println!("Shift in 0b10001 command");
-    cable.write_data(&[0b10001000], 5, true);
-    println!("Set to Read data");
-    cable.change_mode(&[1, 1, 1, 0, 0], false);
-    cable.read_data(32)
-}
+// fn device_id<T: Cable>(cable: &mut T) -> Vec<u8> {
+//     println!("Resetting");
+//     cable.change_mode(&[1, 1, 1, 1, 1], true);
+//     println!("Set to Shift IR");
+//     cable.change_mode(&[0, 1, 1, 0, 0], false);
+//     println!("Shift in 0b10001 command");
+//     cable.write_data(&[0b10001000], 5, true);
+//     println!("Set to Read data");
+//     cable.change_mode(&[1, 1, 1, 0, 0], false);
+//     cable.read_data(32)
+// }

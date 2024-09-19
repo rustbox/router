@@ -9,25 +9,23 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "J"
-				(at 29.21 7.62 0)
+			(property "Reference" "J1"
+				(at 16.51 7.62 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left top)
 				)
 			)
 			(property "Value" "ARJM11C7-502-KB-EW2"
-				(at 29.21 5.08 0)
+				(at 16.51 5.08 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left top)
 				)
 			)
-			(property "Footprint" "ARJM11C7502KBEW2"
+			(property "Footprint" "local:ARJM11C7502KBEW2"
 				(at 29.21 -94.92 0)
 				(effects
 					(font
@@ -96,6 +94,24 @@
 					(hide yes)
 				)
 			)
+			(property "App Note" "https://ww1.microchip.com/downloads/en/Appnotes/VPPD-01740.pdf"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Ref 2" "https://electronics.stackexchange.com/questions/637179/what-to-connect-to-center-taps-of-ethernet-magnetics/637184#637184"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
 			(symbol "ARJM11C7-502-KB-EW2_0_1"
 				(polyline
 					(pts
@@ -159,6 +175,18 @@
 				)
 				(polyline
 					(pts
+						(xy 18.796 -27.94) (xy 21.59 -27.94)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
 						(xy 19.05 -36.068) (xy 19.558 -34.036)
 					)
 					(stroke
@@ -172,6 +200,66 @@
 				(polyline
 					(pts
 						(xy 19.558 -34.036) (xy 15.494 -34.036)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 20.828 -24.13) (xy 21.59 -24.13)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 21.59 -25.4) (xy 21.59 -24.13)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 18.796 -25.4) (xy 18.796 -26.416) (xy 19.812 -26.416)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 18.796 -25.4) (xy 18.796 -24.13) (xy 19.812 -24.13)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 21.59 -25.4) (xy 21.59 -26.416) (xy 21.082 -26.416) (xy 20.828 -26.416)
 					)
 					(stroke
 						(width 0)
@@ -235,18 +323,6 @@
 				)
 				(polyline
 					(pts
-						(xy 18.796 -28.702) (xy 18.796 -27.178)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
 						(xy 18.796 -25.4) (xy 16.764 -25.4)
 					)
 					(stroke
@@ -295,7 +371,19 @@
 				)
 				(polyline
 					(pts
-						(xy 19.812 -24.638) (xy 19.812 -26.162)
+						(xy 19.812 -27.178) (xy 19.812 -25.654)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 20.828 -23.368) (xy 20.828 -24.892)
 					)
 					(stroke
 						(width 0)
@@ -319,18 +407,6 @@
 				)
 				(polyline
 					(pts
-						(xy 18.796 -24.638) (xy 18.796 -26.162) (xy 19.812 -25.4) (xy 18.796 -24.638)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
 						(xy 19.558 -30.48) (xy 20.574 -30.48) (xy 20.574 -33.02) (xy 16.764 -33.02)
 					)
 					(stroke
@@ -343,7 +419,7 @@
 				)
 				(polyline
 					(pts
-						(xy 19.812 -28.702) (xy 19.812 -27.178) (xy 18.796 -27.94) (xy 19.812 -28.702)
+						(xy 19.812 -23.368) (xy 19.812 -24.892) (xy 20.828 -24.13) (xy 19.812 -23.368)
 					)
 					(stroke
 						(width 0)
@@ -355,7 +431,19 @@
 				)
 				(polyline
 					(pts
-						(xy 19.812 -25.4) (xy 21.844 -25.4) (xy 21.844 -27.94) (xy 19.812 -27.94)
+						(xy 20.828 -27.178) (xy 20.828 -25.654) (xy 19.812 -26.416) (xy 20.828 -27.178)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 21.59 -25.4) (xy 23.622 -25.4) (xy 23.622 -27.94) (xy 21.59 -27.94)
 					)
 					(stroke
 						(width 0)
