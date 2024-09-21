@@ -7,10 +7,9 @@
 #![allow(unused_variables)]
 
 extern crate alloc;
-use alloc::format;
-use core::mem::MaybeUninit;
+use alloc::{format, string::String};
+use core::{mem::MaybeUninit, num};
 use esp_backtrace as _;
-use esp_hal::timer::timg::TimerGroup;
 use esp_hal::timer::{ErasedTimer, PeriodicTimer};
 use esp_hal::uart;
 use esp_hal::uart::Uart;
@@ -19,10 +18,14 @@ use esp_hal::{
     clock::ClockControl, delay::Delay, gpio::Io, peripherals::Peripherals, prelude::*,
     system::SystemControl,
 };
+use esp_hal::{
+    clock::Clocks,
+    timer::{systimer::SystemTimer, timg::TimerGroup},
+};
 use esp_hal::{gpio::GpioPin, Blocking};
 use esp_println::println;
-use fugit::TimerRateU64;
-use md::Controller;
+use fugit::{Duration, HertzU64, MicrosDurationU64, NanosDurationU64, TimerRateU64};
+use md::{Controller, MDIOFrame};
 use nb::block;
 use noline::builder::EditorBuilder;
 
@@ -35,6 +38,7 @@ pub mod md;
 
 const PHY: u8 = 0x03;
 
+#[link_section = ".rwtext"]
 #[entry]
 fn main() -> ! {
     let peripherals = Peripherals::take();
@@ -42,6 +46,7 @@ fn main() -> ! {
 
     let clocks = ClockControl::max(system.clock_control).freeze();
     let delay = Delay::new(&clocks);
+    let ticker = Ticker::new(&clocks);
 
     #[global_allocator]
     static ALLOCATOR: esp_alloc::EspHeap = esp_alloc::EspHeap::empty();
@@ -89,7 +94,8 @@ fn main() -> ! {
 
     let led: u16 = 0b0001_0111_0000_0000;
 
-    let mut cont = md::Controller::new(TimerRateU64::kHz(100), t, mdc, mdio);
+    let mdc_freq = TimerRateU64::kHz(10);
+    let mut cont = md::Controller::new(mdc_freq, t, mdc, mdio);
     // for reg in 0..32 {
     //     let mm  = md::MDIOFrame::<2>::new(PHY, reg);
     //     let x = cont.frame_read(mm);
@@ -133,6 +139,23 @@ fn main() -> ! {
 
     println!("Waiting for input...");
 
+    fn parse_num<T: Num>(str: &str) -> Result<T, String> {
+        match str {
+            s if s.starts_with("0x") => T::from_str_radix(&s[2..], 16)
+                .map_err(|err| format!("couldn't read {:?} as hex: {}", str, err)),
+
+            s if s.starts_with("0o") => T::from_str_radix(&s[2..], 8)
+                .map_err(|err| format!("couldn't read {:?} as octal: {}", str, err)),
+
+            s if s.starts_with("0b") => T::from_str_radix(&s[2..], 2)
+                .map_err(|err| format!("couldn't read {:?} as binary: {}", str, err)),
+
+            #[allow(clippy::from_str_radix_10)]
+            _ => T::from_str_radix(str, 10)
+                .map_err(|err| format!("couldn't read {:?}: {}", str, err)),
+        }
+    }
+
     let mut uart0 = UartWrapper::from(uart0);
 
     loop {
@@ -156,20 +179,7 @@ fn main() -> ! {
 
                 ["read", "all"] => print_standard_regs(&mut cont),
                 ["read", reg] => {
-                    let reg = match reg {
-                        r if r.starts_with("0x") => u8::from_str_radix(&r[2..], 16)
-                            .map_err(|err| format!("couldn't read {:?} as hex: {}", reg, err)),
-
-                        r if r.starts_with("0o") => u8::from_str_radix(&r[2..], 8)
-                            .map_err(|err| format!("couldn't read {:?} as octal: {}", reg, err)),
-
-                        r if r.starts_with("0b") => u8::from_str_radix(&r[2..], 2)
-                            .map_err(|err| format!("couldn't read {:?} as binary: {}", reg, err)),
-
-                        #[allow(clippy::from_str_radix_10)]
-                        _ => u8::from_str_radix(reg, 10)
-                            .map_err(|err| format!("couldn't read {:?}: {}", reg, err)),
-                    };
+                    let reg = parse_num(reg);
 
                     if let Err(err) = &reg {
                         println!("error: {}", err);
@@ -177,11 +187,43 @@ fn main() -> ! {
                     }
 
                     let reg = reg.unwrap();
-                    let read = cont.frame_read(md::MDIOFrame::<2>::new(PHY, reg));
+
+                    let start0 = SystemTimer::now();
+                    let start = ticker.now();
+                    let read = cont.frame_read(md::MDIOFrame::<2>::new(PHY, reg), ticker);
+                    let dur = ticker.since(start);
 
                     println!("read 0x{:x}: 0x{:x}", reg, read);
+                    println!(
+                        "  (took {}, or {} periods)",
+                        dur,
+                        dur / mdc_freq.into_duration::<1, 1_000_000>(),
+                    );
                 }
                 ["read", ..] => {
+                    println!("error: read: unrecognized arguments: {:?}", &split[1..]);
+                    println!("usage: read [all|REG])");
+                }
+
+                ["write", reg, val] => {
+                    let reg = parse_num(reg);
+                    if let Err(err) = &reg {
+                        println!("error: {}", err);
+                        continue;
+                    }
+                    let val = parse_num(val);
+                    if let Err(err) = &reg {
+                        println!("error: {}", err);
+                        continue;
+                    }
+
+                    let reg = reg.unwrap();
+                    let val = val.unwrap();
+                    cont.frame_write(md::MDIOFrame::<2>::new(PHY, reg), val);
+
+                    println!("wrote to 0x{:x}: 0x{:x}", reg, val);
+                }
+                ["write", ..] => {
                     println!("error: read: unrecognized arguments: {:?}", &split[1..]);
                     println!("usage: read [all|REG])");
                 }
@@ -192,6 +234,51 @@ fn main() -> ! {
                 [] => {}
             }
         }
+    }
+}
+
+// cf. esp_hal::delay::Delay
+#[derive(Clone, Copy)]
+pub struct Ticker {
+    pub freq: HertzU64,
+}
+
+impl Ticker {
+    pub fn new(clocks: &Clocks) -> Self {
+        Self {
+            freq: HertzU64::MHz(clocks.xtal_clock.to_MHz() as u64 * 10 / 25),
+        }
+    }
+
+    pub fn now(&self) -> fugit::TimerInstantU64<1_000_000> {
+        let t0 = SystemTimer::now();
+        let rate: HertzU64 = MicrosDurationU64::from_ticks(1).into_rate();
+
+        fugit::TimerInstantU64::from_ticks(t0 / (self.freq / rate))
+    }
+
+    pub fn since(
+        &self,
+        start: fugit::TimerInstantU64<1_000_000>,
+    ) -> fugit::TimerDurationU64<1_000_000> {
+        self.now() - start
+    }
+}
+
+// hoOrAy for NomInaL TypEs
+// cf. https://github.com/rust-num/num-traits
+trait Num: Sized + Clone + Copy {
+    fn from_str_radix(str: &str, radix: u32) -> Result<Self, core::num::ParseIntError>;
+}
+
+impl Num for u8 {
+    fn from_str_radix(str: &str, radix: u32) -> Result<Self, core::num::ParseIntError> {
+        u8::from_str_radix(str, radix)
+    }
+}
+impl Num for u16 {
+    fn from_str_radix(str: &str, radix: u32) -> Result<Self, core::num::ParseIntError> {
+        u16::from_str_radix(str, radix)
     }
 }
 
@@ -214,8 +301,8 @@ where
 fn print_standard_regs(cont: &mut Controller) {
     for r in 0..32 {
         let f = md::MDIOFrame::<2>::new(PHY, r);
-        let x = cont.frame_read(f);
-        println!("Reg {:x} = {:x}", r, x);
+        // let x = cont.frame_read(f, );
+        // println!("Reg {:x} = {:x}", r, x);
     }
 }
 

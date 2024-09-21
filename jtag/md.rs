@@ -4,7 +4,8 @@ use esp_hal::{
     prelude::*,
     timer::{ErasedTimer, PeriodicTimer},
 };
-use fugit::HertzU64;
+use esp_println::println;
+use fugit::{HertzU64, KilohertzU64};
 use nb::block;
 
 // Taken from Table 25, page 56 of GPY111 datasheet
@@ -40,7 +41,7 @@ pub struct MDIOFrame<const PRE: u8 = 2> {
 }
 
 impl<const PRE: u8> MDIOFrame<PRE> {
-    pub fn new(phy_addr: u8, register: u8) -> MDIOFrame {
+    pub fn new(phy_addr: u8, register: u8) -> Self {
         MDIOFrame {
             phy_addr: phy_addr & 0b00011111,
             register: register & 0b00011111,
@@ -89,6 +90,7 @@ impl<const PRE: u8> MDIOFrame<PRE> {
 }
 
 pub struct Controller<'a> {
+    freq: HertzU64,
     clock: PeriodicTimer<ErasedTimer>,
     mdc: AnyOutput<'a>,
     mdio: AnyFlex<'a>,
@@ -108,9 +110,15 @@ impl<'a> Controller<'a> {
 
         mdc.set_low();
 
-        Controller { clock, mdc, mdio }
+        Controller {
+            freq,
+            clock,
+            mdc,
+            mdio,
+        }
     }
 
+    #[link_section = ".rwtext"]
     fn pulse_clock(&mut self) {
         block!(self.clock.wait()).unwrap();
         self.mdc.set_high();
@@ -118,28 +126,35 @@ impl<'a> Controller<'a> {
         self.mdc.set_low();
     }
 
+    #[inline]
     fn set_write_mode(&mut self) {
         self.mdio.set_as_open_drain(Pull::Up);
     }
 
+    #[inline]
     fn set_read_mode(&mut self) {
         self.mdio.set_as_input(Pull::Up);
     }
 
+    #[inline]
     pub fn turnaround(&mut self) {
         for _ in 0..TURNAROUND {
             self.pulse_clock();
         }
     }
 
+    #[inline]
     pub fn write_bit(&mut self, v: Level) {
         // Set the MDIO value
         self.mdio.set_level(v);
+
+        // println!("v: {:?}", v);
 
         // Clock cycle
         self.pulse_clock();
     }
 
+    #[inline]
     pub fn read_bit(&mut self) -> Level {
         self.pulse_clock();
 
@@ -147,22 +162,43 @@ impl<'a> Controller<'a> {
         self.mdio.get_level()
     }
 
-    pub fn frame_read(&mut self, frame: MDIOFrame) -> u16 {
+    #[link_section = ".rwtext"]
+    pub fn frame_read<const PRE: u8>(&mut self, frame: MDIOFrame<PRE>, ticker: crate::Ticker) -> u16
+    where
+        [(); PRE as usize]:,
+    {
         // Just assert that the frame is a read if we're in the read function
         let header = frame.header(Op::Read);
 
         self.set_write_mode();
-        self.clock.clear_interrupt(); // else we'll foreshorten the first cycle
+        block!(self.clock.wait()).unwrap(); // else we'll foreshorten the first cycle
+
+        // block!(self.clock.wait()).unwrap();
+        // block!(self.clock.wait()).unwrap();
+        // block!(self.clock.wait()).unwrap();
+        // block!(self.clock.wait()).unwrap();
+        // block!(self.clock.wait()).unwrap();
+
+        let start = ticker.now();
+
+        // self.clock.clear_interrupt(); // else we'll foreshorten the first cycle
 
         // Write the header bits
+        let mut wrote = 0;
         for b in header {
             // println!("W: {:?}", b);
             self.write_bit(b);
+            wrote += 1;
         }
+
+        let start1 = ticker.now();
 
         self.set_read_mode();
         self.turnaround();
 
+        let mid = ticker.now();
+
+        let mut counter2 = 0;
         let mut value = 0;
         for b in 0..16 {
             // Read bits High to Low
@@ -173,11 +209,39 @@ impl<'a> Controller<'a> {
                 Level::High => 1,
             };
             value |= x << h;
+            counter2 += 1;
         }
+
+        let end = ticker.now();
+        println!(
+            "total: {} ; inner bits: {} {} {}",
+            (end - start) / self.freq.into_duration::<1, 1_000_000>(),
+            (start1 - start) / self.freq.into_duration::<1, 1_000_000>(),
+            (end - mid) / self.freq.into_duration::<1, 1_000_000>(),
+            (mid - start1) / self.freq.into_duration::<1, 1_000_000>(),
+        );
+        println!(
+            "headers: want {}, got: {} (wrote: {})",
+            (14 + PRE as u32) * self.freq.into_duration::<1, 1_000_000>(),
+            (start1 - start),
+            wrote,
+        );
+        println!(
+            "turnaround: want {}, got: {}",
+            2 * self.freq.into_duration::<1, 1_000_000>(),
+            (mid - start1),
+        );
+        println!(
+            "reading: want {}, got: {} (read: {})",
+            16 * self.freq.into_duration::<1, 1_000_000>(),
+            (end - mid),
+            counter2,
+        );
 
         value
     }
 
+    #[link_section = ".rwtext"]
     pub fn frame_write(&mut self, frame: MDIOFrame, data: u16) {
         let header = frame.header(Op::Write);
 
