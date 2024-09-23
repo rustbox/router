@@ -10,7 +10,6 @@ extern crate alloc;
 use alloc::{format, string::String};
 use core::{mem::MaybeUninit, num};
 use esp_backtrace as _;
-use esp_hal::timer::{ErasedTimer, PeriodicTimer};
 use esp_hal::uart;
 use esp_hal::uart::Uart;
 use esp_hal::uart::{UartRx, UartTx};
@@ -23,8 +22,12 @@ use esp_hal::{
     timer::{systimer::SystemTimer, timg::TimerGroup},
 };
 use esp_hal::{gpio::GpioPin, Blocking};
+use esp_hal::{
+    gpio::Level,
+    timer::{ErasedTimer, PeriodicTimer},
+};
 use esp_println::println;
-use fugit::{Duration, HertzU64, MicrosDurationU64, NanosDurationU64, TimerRateU64};
+use fugit::{Duration, HertzU32, HertzU64, MicrosDurationU64, NanosDurationU64, TimerRateU64};
 use md::{Controller, MDIOFrame};
 use nb::block;
 use noline::builder::EditorBuilder;
@@ -94,8 +97,8 @@ fn main() -> ! {
 
     let led: u16 = 0b0001_0111_0000_0000;
 
-    let mdc_freq = TimerRateU64::kHz(10);
-    let mut cont = md::Controller::new(mdc_freq, t, mdc, mdio);
+    let mdc_freq = TimerRateU64::kHz(1);
+    let mut cont = md::Controller::new(mdc_freq, t, mdc, mdio, ticker);
     // for reg in 0..32 {
     //     let mm  = md::MDIOFrame::<2>::new(PHY, reg);
     //     let x = cont.frame_read(mm);
@@ -190,7 +193,7 @@ fn main() -> ! {
 
                     let start0 = SystemTimer::now();
                     let start = ticker.now();
-                    let read = cont.frame_read(md::MDIOFrame::<2>::new(PHY, reg), ticker);
+                    let read = cont.frame_read(md::MDIOFrame::<2>::new(PHY, reg));
                     let dur = ticker.since(start);
 
                     println!("read 0x{:x}: 0x{:x}", reg, read);
@@ -226,6 +229,257 @@ fn main() -> ! {
                 ["write", ..] => {
                     println!("error: read: unrecognized arguments: {:?}", &split[1..]);
                     println!("usage: read [all|REG])");
+                }
+
+                ["wat"] => {
+                    println!("lol");
+
+                    let mdc = &mut cont.mdc;
+                    let mdio = &mut cont.mdio;
+                    let clock = &mut cont.clock;
+
+                    mdio.set_state((Level::Low).into());
+                    block!(clock.wait()).unwrap();
+                    block!(clock.wait()).unwrap();
+                    mdc.set_low();
+
+                    // .....
+                    mdio.set_state((Level::High).into());
+
+                    block!(clock.wait()).unwrap();
+                    mdc.set_high();
+                    block!(clock.wait()).unwrap();
+                    mdc.set_low();
+
+                    mdio.set_state((Level::Low).into());
+
+                    block!(clock.wait()).unwrap();
+                    mdc.set_high();
+                    block!(clock.wait()).unwrap();
+                    // block!(clock.wait()).unwrap();
+                    // block!(clock.wait()).unwrap();
+                    mdc.set_low();
+                }
+                ["wat2"] => {
+                    println!("ummmmmm");
+
+                    let mdc = &mut cont.mdc;
+                    let mdio = &mut cont.mdio;
+                    let clock = &mut cont.clock;
+
+                    mdio.set_state((Level::Low).into());
+                    block!(clock.wait()).unwrap();
+                    block!(clock.wait()).unwrap();
+
+                    // start of write
+                    mdio.set_state((Level::High).into());
+
+                    block!(clock.wait()).unwrap();
+                    while unsafe {
+                        core::mem::transmute::<
+                            HertzU32,
+                            esp_hal::timer::timg::Timer<
+                                esp_hal::timer::timg::Timer0<esp_hal::peripherals::TIMG0>,
+                                Blocking,
+                            >,
+                        >(clocks.apb_clock)
+                    }
+                    .is_interrupt_set()
+                    {}
+                    mdc.set_high();
+                    block!(clock.wait()).unwrap();
+                    while unsafe {
+                        core::mem::transmute::<
+                            HertzU32,
+                            esp_hal::timer::timg::Timer<
+                                esp_hal::timer::timg::Timer0<esp_hal::peripherals::TIMG0>,
+                                Blocking,
+                            >,
+                        >(clocks.apb_clock)
+                    }
+                    .is_interrupt_set()
+                    {}
+                    mdc.set_low();
+
+                    // end of write
+
+                    block!(clock.wait()).unwrap();
+                    mdc.set_high();
+
+                    mdio.set_state((Level::Low).into());
+
+                    block!(clock.wait()).unwrap();
+                    // block!(clock.wait()).unwrap();
+                    // block!(clock.wait()).unwrap();
+                    // mdc.set_low();
+                }
+                ["wat3"] => {
+                    println!("ummmmmm");
+
+                    let mdc = &mut cont.mdc;
+                    let mdio = &mut cont.mdio;
+                    let clock = &mut cont.clock;
+
+                    mdio.set_state((Level::Low).into());
+                    block!(clock.wait()).unwrap();
+                    block!(clock.wait()).unwrap();
+
+                    // start of write
+                    mdio.set_state((Level::High).into());
+
+                    block!(clock.wait()).unwrap();
+                    mdc.set_high();
+                    block!(clock.wait()).unwrap();
+                    mdc.set_low();
+                    // end of write
+
+                    block!(clock.wait()).unwrap();
+                    mdc.set_high();
+
+                    mdio.set_state((Level::Low).into());
+
+                    block!(clock.wait()).unwrap();
+                    // block!(clock.wait()).unwrap();
+                    // block!(clock.wait()).unwrap();
+                    // mdc.set_low();
+                }
+                ["watd"] => {
+                    println!("delay with micros to ensure the interrupt bit is cleared by the next call into `clock.wait()`");
+
+                    let mdc = &mut cont.mdc;
+                    let mdio = &mut cont.mdio;
+                    let clock = &mut cont.clock;
+
+                    let mut wait = || {
+                        block!(clock.wait()).unwrap();
+                        delay.delay_micros(12);
+                    };
+
+                    mdio.set_state((Level::Low).into());
+                    wait();
+                    wait();
+
+                    // start of write
+                    mdio.set_state((Level::High).into());
+
+                    // block!(clock.wait()).unwrap();
+                    wait();
+                    mdc.set_high();
+                    wait();
+                    mdc.set_low();
+                    // end of write
+
+                    wait();
+                    mdc.set_high();
+
+                    mdio.set_state((Level::Low).into());
+
+                    wait();
+                    // block!(clock.wait()).unwrap();
+                    // block!(clock.wait()).unwrap();
+                    // mdc.set_low();
+                }
+
+                ["wat-cf"] => {
+                    println!(
+                        "can we set two gpios at the same time or do they stomp on each other?"
+                    );
+
+                    let mdc = &mut cont.mdc;
+                    let mdio = &mut cont.mdio;
+                    let clock = &mut cont.clock;
+
+                    // given both signals start as high:
+                    // how long will this code take to run?
+                    //      my guess: on the order of 300µs
+                    // when will they fall relative to each other?
+                    //      my guess: with 100µs of spacing between them
+                    // when will they rise relative to each other?
+                    //      my guess: at about the same time (+/- ~10µs)
+                    //
+                    // observed (ooooohhh, hmm: with DIN pull = "mid"):
+                    //      takes anywhere from ~600µs to 1200µs measured from falling edge to second signal rise (mebe, rise time?)
+                    //      though the "on CPU" parts do claim to finish in ~300µs once things are cached, +/- 5-6µs
+                    //
+                    //      nope, they fall right at the same instant, very reliably
+                    //
+                    //      as seen above, it varies quite a lot when the analyzer "sees" a 1 on both lines
+                    //
+                    // with (DIN pull = "up")
+                    //      takes a fairly consistent ~214µs from fall to second rise
+                    //
+                    //      fall is separated by about 101µs, as expected
+                    //
+                    //      rise is ~12µs separate
+
+                    let start = ticker.now();
+
+                    mdc.set_low();
+                    delay.delay_micros(100);
+
+                    mdio.set_low();
+                    delay.delay_micros(100);
+
+                    if mdc.is_set_high() || mdio.is_set_high() {
+                        panic!("bad start");
+                    }
+
+                    mdc.set_high();
+                    mdio.set_high();
+
+                    // delay.delay_micros(100);
+                    // let res = unsafe { &*esp_hal::peripherals::GPIO::PTR }
+                    //     .out()
+                    //     .read()
+                    //     .bits();
+                    // println!("0b{}", res);
+
+                    if !(mdc.is_set_high() && mdio.is_set_high()) {
+                        panic!("lololololololol");
+                    }
+
+                    let dur = ticker.since(start);
+                    println!("took: {}", dur);
+                }
+                ["hmm"] => {
+                    println!("ok so given that the memory write to the 'W1TS'/'W1TC' registers seem to stall (?) for an indeterminate(?) amount of time");
+                    println!("then what?");
+
+                    let mdc = &mut cont.mdc;
+                    let mdio = &mut cont.mdio;
+                    let clock = &mut cont.clock;
+
+                    let start = ticker.now();
+
+                    mdio.set_state((Level::Low).into());
+                    delay.delay_micros(100);
+                    mdc.set_low();
+
+                    // start of write
+                    mdio.set_state((Level::High).into());
+
+                    delay.delay_micros(100);
+                    mdc.set_high();
+                    delay.delay_micros(100);
+                    mdc.set_low();
+                    // end of write
+
+                    delay.delay_micros(100);
+                    mdc.set_high();
+
+                    mdio.set_state((Level::Low).into());
+
+                    delay.delay_micros(100);
+
+                    mdc.set_high();
+                    mdio.set_high();
+
+                    if !(mdc.is_set_high() && mdio.is_set_high()) {
+                        panic!("lololololololol");
+                    }
+
+                    let dur = ticker.since(start);
+                    println!("took: {}", dur);
                 }
 
                 [other, ..] => {
@@ -301,8 +555,8 @@ where
 fn print_standard_regs(cont: &mut Controller) {
     for r in 0..32 {
         let f = md::MDIOFrame::<2>::new(PHY, r);
-        // let x = cont.frame_read(f, );
-        // println!("Reg {:x} = {:x}", r, x);
+        let x = cont.frame_read(f);
+        println!("Reg {:x} = {:x}", r, x);
     }
 }
 

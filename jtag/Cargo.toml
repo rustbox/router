@@ -59,8 +59,11 @@ fugit = "0.3.7"
 noline = "0.5.0"
 embedded-io = "0.6.1"
 
+[features]
+mdio-timing = []
+
 [profile.dev]
-opt-level = "s"
+# opt-level = "s"
 
 [profile.release]
 codegen-units = 1

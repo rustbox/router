@@ -1,5 +1,5 @@
 use alloc::vec::Vec;
-use esp_hal::gpio::{AnyFlex, AnyOutput, GpioPin, Level, Pull};
+use esp_hal::gpio::{AnyFlex, AnyOutput, AnyOutputOpenDrain, DriveStrength, GpioPin, Level, Pull};
 use esp_hal::{
     prelude::*,
     timer::{ErasedTimer, PeriodicTimer},
@@ -90,31 +90,53 @@ impl<const PRE: u8> MDIOFrame<PRE> {
 }
 
 pub struct Controller<'a> {
+    pub clock: PeriodicTimer<ErasedTimer>,
+    pub mdc: AnyOutput<'a>,
+    pub mdio: GpioPin<1>,
+
     freq: HertzU64,
-    clock: PeriodicTimer<ErasedTimer>,
-    mdc: AnyOutput<'a>,
-    mdio: AnyFlex<'a>,
+    ticker: crate::Ticker,
 }
 
+#[allow(clippy::missing_transmute_annotations)] // we can't actually name the (private) type, so we're sidestepping it with transmute
 impl<'a> Controller<'a> {
     pub fn new(
         freq: HertzU64,
         mut clock: PeriodicTimer<ErasedTimer>,
         mdc: GpioPin<0>,
-        mdio: GpioPin<1>,
+        mut mdio: GpioPin<1>,
+        ticker: crate::Ticker,
     ) -> Controller<'a> {
         clock.start(freq.into_duration() / 2).unwrap();
 
         let mut mdc = AnyOutput::new(mdc, Level::Low);
-        let mdio = AnyFlex::new(mdio);
 
-        mdc.set_low();
+        // let mut mdio = AnyOutputOpenDrain::new(mdio, Level::High, Pull::Up);
+        let init = Level::High;
+        let pull = Pull::Up;
+
+        let lol = || unsafe { core::mem::transmute(()) };
+        mdio.set_output_high(init.into(), lol());
+        mdio.internal_pull_down(pull == Pull::Down, lol());
+        mdio.internal_pull_up(pull == Pull::Up, lol());
+        mdio.set_to_open_drain_output(lol());
+        // mdio.set_drive_strength(DriveStrength::I5mA, lol());
+
+        // mdio.enable_open_drain(on, unsafe { core::mem::transmute(()) });
+        // mdio.set_as_open_drain(Pull::Up);
+        // mdio.set_high();
+        // mdio.enable_input(true);
+
+        // mdc.set_low();
+        mdc.set_high();
 
         Controller {
-            freq,
             clock,
             mdc,
             mdio,
+
+            freq,
+            ticker,
         }
     }
 
@@ -128,12 +150,16 @@ impl<'a> Controller<'a> {
 
     #[inline]
     fn set_write_mode(&mut self) {
-        self.mdio.set_as_open_drain(Pull::Up);
+        // self.mdio.set_as_open_drain(Pull::Up);
+        self.mdio
+            .enable_output(true, unsafe { core::mem::transmute(()) });
     }
 
     #[inline]
     fn set_read_mode(&mut self) {
-        self.mdio.set_as_input(Pull::Up);
+        // self.mdio.enable_output(false);
+        self.mdio
+            .enable_output(false, unsafe { core::mem::transmute(()) });
     }
 
     #[inline]
@@ -146,9 +172,9 @@ impl<'a> Controller<'a> {
     #[inline]
     pub fn write_bit(&mut self, v: Level) {
         // Set the MDIO value
-        self.mdio.set_level(v);
-
-        // println!("v: {:?}", v);
+        // self.mdio.set_level(v);
+        self.mdio
+            .set_output_high(v.into(), unsafe { core::mem::transmute(()) });
 
         // Clock cycle
         self.pulse_clock();
@@ -156,21 +182,29 @@ impl<'a> Controller<'a> {
 
     #[inline]
     pub fn read_bit(&mut self) -> Level {
+        // Sample the value of MDIO
+        // let read = self.mdio.get_level();
+        let read = self.mdio.is_high().into();
+
         self.pulse_clock();
 
-        // Sample the value of MDIO
-        self.mdio.get_level()
+        read
     }
 
     #[link_section = ".rwtext"]
-    pub fn frame_read<const PRE: u8>(&mut self, frame: MDIOFrame<PRE>, ticker: crate::Ticker) -> u16
+    pub fn frame_read<const PRE: u8>(&mut self, frame: MDIOFrame<PRE>) -> u16
     where
         [(); PRE as usize]:,
     {
         // Just assert that the frame is a read if we're in the read function
         let header = frame.header(Op::Read);
 
+        // self.mdc.set_high();
+        self.mdio.set_high();
         self.set_write_mode();
+        // self.mdc.set_low();
+
+        block!(self.clock.wait()).unwrap();
         block!(self.clock.wait()).unwrap(); // else we'll foreshorten the first cycle
 
         // block!(self.clock.wait()).unwrap();
@@ -179,7 +213,7 @@ impl<'a> Controller<'a> {
         // block!(self.clock.wait()).unwrap();
         // block!(self.clock.wait()).unwrap();
 
-        let start = ticker.now();
+        let start = self.ticker.now();
 
         // self.clock.clear_interrupt(); // else we'll foreshorten the first cycle
 
@@ -191,12 +225,12 @@ impl<'a> Controller<'a> {
             wrote += 1;
         }
 
-        let start1 = ticker.now();
+        let start1 = self.ticker.now();
 
         self.set_read_mode();
         self.turnaround();
 
-        let mid = ticker.now();
+        let mid = self.ticker.now();
 
         let mut counter2 = 0;
         let mut value = 0;
@@ -212,7 +246,14 @@ impl<'a> Controller<'a> {
             counter2 += 1;
         }
 
-        let end = ticker.now();
+        let end = self.ticker.now();
+
+        // self.mdio.set_as_open_drain(Pull::Up);
+        // self.mdio.set_high();
+
+        // block!(self.clock.wait()).unwrap();
+        // self.mdc.set_high();
+
         println!(
             "total: {} ; inner bits: {} {} {}",
             (end - start) / self.freq.into_duration::<1, 1_000_000>(),
