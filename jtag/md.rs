@@ -92,7 +92,7 @@ impl<const PRE: u8> MDIOFrame<PRE> {
 pub struct Controller<'a> {
     pub clock: PeriodicTimer<ErasedTimer>,
     pub mdc: AnyOutput<'a>,
-    pub mdio: GpioPin<1>,
+    pub mdio: GpioPin<0>,
 
     freq: HertzU64,
     ticker: crate::Ticker,
@@ -103,8 +103,8 @@ impl<'a> Controller<'a> {
     pub fn new(
         freq: HertzU64,
         mut clock: PeriodicTimer<ErasedTimer>,
-        mdc: GpioPin<0>,
-        mut mdio: GpioPin<1>,
+        mdc: GpioPin<1>,
+        mut mdio: GpioPin<0>,
         ticker: crate::Ticker,
     ) -> Controller<'a> {
         clock.start(freq.into_duration() / 2).unwrap();

@@ -10,9 +10,6 @@ extern crate alloc;
 use alloc::{format, string::String};
 use core::{mem::MaybeUninit, num};
 use esp_backtrace as _;
-use esp_hal::uart;
-use esp_hal::uart::Uart;
-use esp_hal::uart::{UartRx, UartTx};
 use esp_hal::{
     clock::ClockControl, delay::Delay, gpio::Io, peripherals::Peripherals, prelude::*,
     system::SystemControl,
@@ -21,12 +18,18 @@ use esp_hal::{
     clock::Clocks,
     timer::{systimer::SystemTimer, timg::TimerGroup},
 };
+use esp_hal::{gpio::AnyOutput, uart};
+use esp_hal::{gpio::AnyOutputOpenDrain, uart::Uart};
 use esp_hal::{gpio::GpioPin, Blocking};
 use esp_hal::{
     gpio::Level,
     timer::{ErasedTimer, PeriodicTimer},
 };
-use esp_println::println;
+use esp_hal::{
+    gpio::Pull,
+    uart::{UartRx, UartTx},
+};
+use esp_println::{print, println};
 use fugit::{Duration, HertzU32, HertzU64, MicrosDurationU64, NanosDurationU64, TimerRateU64};
 use md::{Controller, MDIOFrame};
 use nb::block;
@@ -78,8 +81,21 @@ fn main() -> ! {
     println!("Hello");
     println!("Clock: {}", &clocks.cpu_clock);
 
-    let mdc = io.pins.gpio0;
-    let mdio = io.pins.gpio1;
+    // let mdc = io.pins.gpio0;
+    // let mdio = io.pins.gpio1;
+    let mdio = io.pins.gpio0;
+    let mdc = io.pins.gpio1;
+
+    let mut rstn = AnyOutputOpenDrain::new(io.pins.gpio2, Level::Low, Pull::Up);
+    let mut reset = || {
+        print!("resetting...");
+        rstn.set_low();
+        delay.delay_millis(2000);
+        rstn.set_high();
+        delay.delay_millis(300);
+        println!("");
+    };
+    reset();
 
     let g = TimerGroup::new(peripherals.TIMG0, &clocks, None);
     let t = PeriodicTimer::new(ErasedTimer::Timg0Timer0(g.timer0));
@@ -143,6 +159,7 @@ fn main() -> ! {
     println!("Waiting for input...");
 
     fn parse_num<T: Num>(str: &str) -> Result<T, String> {
+        let str = &str.replace("_", "").replace("'", "");
         match str {
             s if s.starts_with("0x") => T::from_str_radix(&s[2..], 16)
                 .map_err(|err| format!("couldn't read {:?} as hex: {}", str, err)),
@@ -178,7 +195,7 @@ fn main() -> ! {
             let n = line.splitn(N, ' ').collect_slice(&mut split[..]);
             let split = &split[..n];
             match split {
-                ["reset"] => println!("todo: reset!"),
+                ["reset"] => reset(),
 
                 ["read", "all"] => print_standard_regs(&mut cont),
                 ["read", reg] => {
@@ -196,7 +213,7 @@ fn main() -> ! {
                     let read = cont.frame_read(md::MDIOFrame::<2>::new(PHY, reg));
                     let dur = ticker.since(start);
 
-                    println!("read 0x{:x}: 0x{:x}", reg, read);
+                    println!("read 0x{:0>2x}: 0x{:0>4x}", reg, read);
                     println!(
                         "  (took {}, or {} periods)",
                         dur,
