@@ -148,9 +148,9 @@ fn main() -> ! {
             .build_sync(&mut uart0)
             .unwrap();
 
+        let mut phy_addr = 0xff;
         while let Ok(line) = editor.readline(prompt, &mut uart0) {
             const N: usize = 4;
-            let mut phy_addr = 0x04;
             let mut split = [""; N];
             let n = line.splitn(N, ' ').collect_slice(&mut split[..]);
             let split = &split[..n];
@@ -190,8 +190,7 @@ fn main() -> ! {
                     }
 
                     let phy = phy.unwrap() & 0b00011111;
-                    let x = &mut phy_addr;
-                    *x = phy;
+                    phy_addr = phy;
                 }
 
                 ["read", "all"] => print_standard_regs(&mut cont, phy_addr),
