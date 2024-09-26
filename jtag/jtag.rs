@@ -8,6 +8,8 @@
 
 extern crate alloc;
 use alloc::format;
+use alloc::string::String;
+use alloc::vec::Vec;
 use core::mem::MaybeUninit;
 use esp_backtrace as _;
 use esp_hal::timer::timg::TimerGroup;
@@ -148,13 +150,51 @@ fn main() -> ! {
 
         while let Ok(line) = editor.readline(prompt, &mut uart0) {
             const N: usize = 4;
+            let mut phy_addr = 0x04;
             let mut split = [""; N];
             let n = line.splitn(N, ' ').collect_slice(&mut split[..]);
             let split = &split[..n];
             match split {
                 ["reset"] => println!("todo: reset!"),
+                ["detect"] => {
+                    let phys = detect(&mut cont);
+                    if phys.is_empty() {
+                        println!("No PHY detected");
+                    } else {
+                        let v: Vec<_> = phys.into_iter().map(|a| format!("0x{:x}", a)).collect();
+                        println!("Detected PHYS: [{:?}]", v.join(", "));
+                    }
+                },
+                ["status"] => {
+                    println!("Connected to PHY at 0x{:x}", phy_addr);
+                }
+                ["setphy", addr] => {
+                    let phy = match addr {
+                        r if r.starts_with("0x") => u8::from_str_radix(&r[2..], 16)
+                            .map_err(|err| format!("couldn't read {:?} as hex: {}", addr, err)),
 
-                ["read", "all"] => print_standard_regs(&mut cont),
+                        r if r.starts_with("0o") => u8::from_str_radix(&r[2..], 8)
+                            .map_err(|err| format!("couldn't read {:?} as octal: {}", addr, err)),
+
+                        r if r.starts_with("0b") => u8::from_str_radix(&r[2..], 2)
+                            .map_err(|err| format!("couldn't read {:?} as binary: {}", addr, err)),
+
+                        #[allow(clippy::from_str_radix_10)]
+                        _ => u8::from_str_radix(addr, 10)
+                            .map_err(|err| format!("couldn't read {:?}: {}", addr, err)),
+                    };
+
+                    if let Err(err) = &phy {
+                        println!("error: {}", err);
+                        continue;
+                    }
+
+                    let phy = phy.unwrap() & 0b00011111;
+                    let x = &mut phy_addr;
+                    *x = phy;
+                }
+
+                ["read", "all"] => print_standard_regs(&mut cont, phy_addr),
                 ["read", reg] => {
                     let reg = match reg {
                         r if r.starts_with("0x") => u8::from_str_radix(&r[2..], 16)
@@ -177,7 +217,7 @@ fn main() -> ! {
                     }
 
                     let reg = reg.unwrap();
-                    let read = cont.frame_read(md::MDIOFrame::<2>::new(PHY, reg));
+                    let read = cont.frame_read(md::MDIOFrame::<2>::new(phy_addr, reg));
 
                     println!("read 0x{:x}: 0x{:x}", reg, read);
                 }
@@ -193,6 +233,21 @@ fn main() -> ! {
             }
         }
     }
+}
+
+fn detect(cont: &mut Controller) -> Vec<u8> {
+    let phy_id1_addr = 0x02;
+    let mut phys = Vec::new();
+    for p in 0..(1<<5) {
+        let x = cont.frame_read(md::MDIOFrame::<2>::new(p, phy_id1_addr));
+        if x != 0xffff {
+            println!("x == {:x}", x);
+            // If the data is all 1s then that means the PHY was not detected at that address
+            // This could be that the PHY is under reset or just the wrong PHY address
+            phys.push(p);
+        }
+    }
+    phys
 }
 
 struct UartWrapper<'d, T> {
@@ -211,9 +266,9 @@ where
     }
 }
 
-fn print_standard_regs(cont: &mut Controller) {
+fn print_standard_regs(cont: &mut Controller, phy: u8) {
     for r in 0..32 {
-        let f = md::MDIOFrame::<2>::new(PHY, r);
+        let f = md::MDIOFrame::<2>::new(phy, r);
         let x = cont.frame_read(f);
         println!("Reg {:x} = {:x}", r, x);
     }
