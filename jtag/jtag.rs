@@ -10,6 +10,9 @@ extern crate alloc;
 use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
+use esp_hal::clock::Clocks;
+use esp_hal::gpio::{AnyOutputOpenDrain, Level, Pull};
+use esp_hal::timer::systimer::SystemTimer;
 use core::mem::MaybeUninit;
 use esp_backtrace as _;
 use esp_hal::timer::timg::TimerGroup;
@@ -22,8 +25,8 @@ use esp_hal::{
     system::SystemControl,
 };
 use esp_hal::{gpio::GpioPin, Blocking};
-use esp_println::println;
-use fugit::TimerRateU64;
+use esp_println::{print, println};
+use fugit::{HertzU64, MicrosDurationU64, TimerRateU64};
 use md::Controller;
 use nb::block;
 use noline::builder::EditorBuilder;
@@ -44,6 +47,7 @@ fn main() -> ! {
 
     let clocks = ClockControl::max(system.clock_control).freeze();
     let delay = Delay::new(&clocks);
+    let ticker = Ticker::new(&clocks);
 
     #[global_allocator]
     static ALLOCATOR: esp_alloc::EspHeap = esp_alloc::EspHeap::empty();
@@ -72,8 +76,19 @@ fn main() -> ! {
     println!("Hello");
     println!("Clock: {}", &clocks.cpu_clock);
 
-    let mdc = io.pins.gpio0;
-    let mdio = io.pins.gpio1;
+    let mdc = io.pins.gpio1;
+    let mdio = io.pins.gpio0;
+
+    let mut rstn = AnyOutputOpenDrain::new(io.pins.gpio2, Level::Low, Pull::Up);
+    let mut reset = || {
+        print!("resetting...");
+        rstn.set_low();
+        delay.delay_millis(2000);
+        rstn.set_high();
+        delay.delay_millis(300);
+        println!("");
+    };
+    reset();
 
     let g = TimerGroup::new(peripherals.TIMG0, &clocks, None);
     let t = PeriodicTimer::new(ErasedTimer::Timg0Timer0(g.timer0));
@@ -91,7 +106,8 @@ fn main() -> ! {
 
     let led: u16 = 0b0001_0111_0000_0000;
 
-    let mut cont = md::Controller::new(TimerRateU64::kHz(100), t, mdc, mdio);
+    let mdc_freq = TimerRateU64::kHz(100);
+    let mut cont = md::Controller::new(mdc_freq, t, mdc, mdio);
     // for reg in 0..32 {
     //     let mm  = md::MDIOFrame::<2>::new(PHY, reg);
     //     let x = cont.frame_read(mm);
@@ -135,6 +151,24 @@ fn main() -> ! {
 
     println!("Waiting for input...");
 
+    fn parse_num<T: Num>(str: &str) -> Result<T, String> {
+        let str = &str.replace("_", "").replace("'", "");
+        match str {
+            s if s.starts_with("0x") => T::from_str_radix(&s[2..], 16)
+                .map_err(|err| format!("couldn't read {:?} as hex: {}", str, err)),
+
+            s if s.starts_with("0o") => T::from_str_radix(&s[2..], 8)
+                .map_err(|err| format!("couldn't read {:?} as octal: {}", str, err)),
+
+            s if s.starts_with("0b") => T::from_str_radix(&s[2..], 2)
+                .map_err(|err| format!("couldn't read {:?} as binary: {}", str, err)),
+
+            #[allow(clippy::from_str_radix_10)]
+            _ => T::from_str_radix(str, 10)
+                .map_err(|err| format!("couldn't read {:?}: {}", str, err)),
+        }
+    }
+
     let mut uart0 = UartWrapper::from(uart0);
 
     loop {
@@ -155,7 +189,18 @@ fn main() -> ! {
             let n = line.splitn(N, ' ').collect_slice(&mut split[..]);
             let split = &split[..n];
             match split {
-                ["reset"] => println!("todo: reset!"),
+                ["help"] => {
+                    println!("Interactive PHY MDIO tool! Available Commands:");
+                    println!("* help: Prints this message");
+                    println!("* reset: Resets the PHY by asserting the reset line for some time");
+                    println!("* detect <auto>: Detects any PHYs connected and reports the PHY addresses");
+                    println!("                 If `auto` then the lowest PHY address will be automatically set");
+                    println!("* status: Prints the PHY address that reads and writes will be directed to");
+                    println!("* setphy [ADDR]: Set the PHY address that reads and writes will use");
+                    println!("* read [all|REG]: read a PHY register at REG address, or print all standard register values");
+                    println!("* write [REG] [DATA]: write DATA to register REG");
+                }
+                ["reset"] => reset(),
                 ["detect"] => {
                     let phys = detect(&mut cont);
                     if phys.is_empty() {
@@ -165,50 +210,33 @@ fn main() -> ! {
                         println!("Detected PHYS: [{:?}]", v.join(", "));
                     }
                 },
+                ["detect", "auto"] => {
+                    let phys = detect(&mut cont);
+                    if phys.is_empty() {
+                        println!("No PHY detected");
+                    } else {
+                        phy_addr = phys[0];
+                        let v: Vec<_> = phys.into_iter().map(|a| format!("0x{:x}", a)).collect();
+                        println!("Detected PHYS: [{:?}] and using 0x{:x}", v.join(", "), phy_addr);
+                    }
+                }
                 ["status"] => {
                     println!("Connected to PHY at 0x{:x}", phy_addr);
                 }
                 ["setphy", addr] => {
-                    let phy = match addr {
-                        r if r.starts_with("0x") => u8::from_str_radix(&r[2..], 16)
-                            .map_err(|err| format!("couldn't read {:?} as hex: {}", addr, err)),
-
-                        r if r.starts_with("0o") => u8::from_str_radix(&r[2..], 8)
-                            .map_err(|err| format!("couldn't read {:?} as octal: {}", addr, err)),
-
-                        r if r.starts_with("0b") => u8::from_str_radix(&r[2..], 2)
-                            .map_err(|err| format!("couldn't read {:?} as binary: {}", addr, err)),
-
-                        #[allow(clippy::from_str_radix_10)]
-                        _ => u8::from_str_radix(addr, 10)
-                            .map_err(|err| format!("couldn't read {:?}: {}", addr, err)),
-                    };
+                    let phy = parse_num::<u8>(addr);
 
                     if let Err(err) = &phy {
                         println!("error: {}", err);
                         continue;
                     }
 
-                    let phy = phy.unwrap() & 0b00011111;
-                    phy_addr = phy;
+                    phy_addr = phy.unwrap() & 0b00011111;
                 }
 
                 ["read", "all"] => print_standard_regs(&mut cont, phy_addr),
                 ["read", reg] => {
-                    let reg = match reg {
-                        r if r.starts_with("0x") => u8::from_str_radix(&r[2..], 16)
-                            .map_err(|err| format!("couldn't read {:?} as hex: {}", reg, err)),
-
-                        r if r.starts_with("0o") => u8::from_str_radix(&r[2..], 8)
-                            .map_err(|err| format!("couldn't read {:?} as octal: {}", reg, err)),
-
-                        r if r.starts_with("0b") => u8::from_str_radix(&r[2..], 2)
-                            .map_err(|err| format!("couldn't read {:?} as binary: {}", reg, err)),
-
-                        #[allow(clippy::from_str_radix_10)]
-                        _ => u8::from_str_radix(reg, 10)
-                            .map_err(|err| format!("couldn't read {:?}: {}", reg, err)),
-                    };
+                    let reg = parse_num(reg);
 
                     if let Err(err) = &reg {
                         println!("error: {}", err);
@@ -223,6 +251,28 @@ fn main() -> ! {
                 ["read", ..] => {
                     println!("error: read: unrecognized arguments: {:?}", &split[1..]);
                     println!("usage: read [all|REG])");
+                }
+                ["write", reg, val] => {
+                    let reg = parse_num(reg);
+                    if let Err(err) = &reg {
+                        println!("error: {}", err);
+                        continue;
+                    }
+                    let val = parse_num(val);
+                    if let Err(err) = &reg {
+                        println!("error: {}", err);
+                        continue;
+                    }
+
+                    let reg = reg.unwrap();
+                    let val = val.unwrap();
+                    cont.frame_write(md::MDIOFrame::<2>::new(PHY, reg), val);
+
+                    println!("wrote to 0x{:x}: 0x{:x}", reg, val);
+                }
+                ["write", ..] => {
+                    println!("error: write: unrecognized arguments: {:?}", &split[1..]);
+                    println!("usage: write [REG])");
                 }
 
                 [other, ..] => {
@@ -240,13 +290,57 @@ fn detect(cont: &mut Controller) -> Vec<u8> {
     for p in 0..(1<<5) {
         let x = cont.frame_read(md::MDIOFrame::<2>::new(p, phy_id1_addr));
         if x != 0xffff {
-            println!("x == {:x}", x);
+            // println!("x == {:x}", x);
             // If the data is all 1s then that means the PHY was not detected at that address
             // This could be that the PHY is under reset or just the wrong PHY address
             phys.push(p);
         }
     }
     phys
+}
+
+#[derive(Clone, Copy)]
+pub struct Ticker {
+    pub freq: HertzU64,
+}
+
+impl Ticker {
+    pub fn new(clocks: &Clocks) -> Self {
+        Self {
+            freq: HertzU64::MHz(clocks.xtal_clock.to_MHz() as u64 * 10 / 25),
+        }
+    }
+
+    pub fn now(&self) -> fugit::TimerInstantU64<1_000_000> {
+        let t0 = SystemTimer::now();
+        let rate: HertzU64 = MicrosDurationU64::from_ticks(1).into_rate();
+
+        fugit::TimerInstantU64::from_ticks(t0 / (self.freq / rate))
+    }
+
+    pub fn since(
+        &self,
+        start: fugit::TimerInstantU64<1_000_000>,
+    ) -> fugit::TimerDurationU64<1_000_000> {
+        self.now() - start
+    }
+}
+
+// hoOrAy for NomInaL TypEs
+// cf. https://github.com/rust-num/num-traits
+trait Num: Sized + Clone + Copy {
+    fn from_str_radix(str: &str, radix: u32) -> Result<Self, core::num::ParseIntError>;
+}
+
+impl Num for u8 {
+    fn from_str_radix(str: &str, radix: u32) -> Result<Self, core::num::ParseIntError> {
+        u8::from_str_radix(str, radix)
+    }
+}
+impl Num for u16 {
+    fn from_str_radix(str: &str, radix: u32) -> Result<Self, core::num::ParseIntError> {
+        u16::from_str_radix(str, radix)
+    }
 }
 
 struct UartWrapper<'d, T> {
@@ -389,6 +483,8 @@ impl embedded_hal::digital::v2::OutputPin for IOPin {
 //     cable.change_mode(&[1, 1, 1, 0, 0], false);
 //     cable.read_data(32)
 // }
+
+
 
 // see archived: https://github.com/kchmck/collect_slice
 pub trait CollectSlice: Iterator {

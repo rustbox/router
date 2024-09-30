@@ -89,28 +89,39 @@ impl<const PRE: u8> MDIOFrame<PRE> {
 }
 
 pub struct Controller<'a> {
-    clock: PeriodicTimer<ErasedTimer>,
-    mdc: AnyOutput<'a>,
-    mdio: AnyFlex<'a>,
+    pub clock: PeriodicTimer<ErasedTimer>,
+    pub mdc: AnyOutput<'a>,
+    pub mdio: GpioPin<0>,
+
+    freq: HertzU64,
 }
 
 impl<'a> Controller<'a> {
     pub fn new(
         freq: HertzU64,
         mut clock: PeriodicTimer<ErasedTimer>,
-        mdc: GpioPin<0>,
-        mdio: GpioPin<1>,
+        mdc: GpioPin<1>,
+        mut mdio: GpioPin<0>,
     ) -> Controller<'a> {
         clock.start(freq.into_duration() / 2).unwrap();
 
         let mut mdc = AnyOutput::new(mdc, Level::Low);
-        let mdio = AnyFlex::new(mdio);
 
-        mdc.set_low();
+        let init = Level::High;
+        let pull = Pull::Up;
 
-        Controller { clock, mdc, mdio }
+        let lol = || unsafe { core::mem::transmute(()) };
+        mdio.set_output_high(init.into(), lol());
+        mdio.internal_pull_down(pull==Pull::Down, lol());
+        mdio.internal_pull_up(pull==Pull::Up, lol());
+        mdio.set_to_open_drain_output(lol());
+
+        mdc.set_high();
+
+        Controller { clock, mdc, mdio, freq }
     }
 
+    #[link_section = ".rwtext"]
     fn pulse_clock(&mut self) {
         block!(self.clock.wait()).unwrap();
         self.mdc.set_high();
@@ -118,41 +129,53 @@ impl<'a> Controller<'a> {
         self.mdc.set_low();
     }
 
+    #[inline]
     fn set_write_mode(&mut self) {
-        self.mdio.set_as_open_drain(Pull::Up);
+        self.mdio
+            .enable_output(true, unsafe { core::mem::transmute(()) });
     }
 
+
+    #[inline]
     fn set_read_mode(&mut self) {
-        self.mdio.set_as_input(Pull::Up);
+        self.mdio.enable_output(false, unsafe { core::mem::transmute(()) });
     }
 
+    #[inline]
     pub fn turnaround(&mut self) {
         for _ in 0..TURNAROUND {
             self.pulse_clock();
         }
     }
 
+    #[inline]
     pub fn write_bit(&mut self, v: Level) {
         // Set the MDIO value
-        self.mdio.set_level(v);
+        self.mdio
+            .set_output_high(v.into(), unsafe { core::mem::transmute(()) });
 
         // Clock cycle
         self.pulse_clock();
     }
 
     pub fn read_bit(&mut self) -> Level {
+        let read = self.mdio.is_high().into();
+
         self.pulse_clock();
 
-        // Sample the value of MDIO
-        self.mdio.get_level()
+        read
     }
 
+    #[link_section = ".rwtext"]
     pub fn frame_read(&mut self, frame: MDIOFrame) -> u16 {
         // Just assert that the frame is a read if we're in the read function
         let header = frame.header(Op::Read);
 
+        self.mdio.set_high();
         self.set_write_mode();
-        self.clock.clear_interrupt(); // else we'll foreshorten the first cycle
+        
+        block!(self.clock.wait()).unwrap();
+        block!(self.clock.wait()).unwrap(); // else we'll foreshorten the first cycle
 
         // Write the header bits
         for b in header {
