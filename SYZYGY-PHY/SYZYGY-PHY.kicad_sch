@@ -9,23 +9,25 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "J1"
-				(at 16.51 7.62 0)
+			(property "Reference" "J"
+				(at 29.21 7.62 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
+					(justify left top)
 				)
 			)
 			(property "Value" "ARJM11C7-502-KB-EW2"
-				(at 16.51 5.08 0)
+				(at 29.21 5.08 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
+					(justify left top)
 				)
 			)
-			(property "Footprint" "local:ARJM11C7502KBEW2"
+			(property "Footprint" "ARJM11C7502KBEW2"
 				(at 29.21 -94.92 0)
 				(effects
 					(font
@@ -91,24 +93,6 @@
 						(size 1.27 1.27)
 					)
 					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "App Note" "https://ww1.microchip.com/downloads/en/Appnotes/VPPD-01740.pdf"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Ref 2" "https://electronics.stackexchange.com/questions/637179/what-to-connect-to-center-taps-of-ethernet-magnetics/637184#637184"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
 					(hide yes)
 				)
 			)
@@ -2471,7 +2455,7 @@
 						(type background)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 0 0 0)
 					(length 5.08)
 					(name "RXD3"
@@ -2489,7 +2473,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 0 -22.86 0)
 					(length 5.08)
 					(name "TXD3"
@@ -2507,7 +2491,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 0 -25.4 0)
 					(length 5.08)
 					(name "TXD2"
@@ -2525,7 +2509,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 0 -27.94 0)
 					(length 5.08)
 					(name "TXD1"
@@ -2543,7 +2527,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 7.62 -45.72 90)
 					(length 5.08)
 					(name "VDDC_2"
@@ -2561,7 +2545,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 10.16 -45.72 90)
 					(length 5.08)
 					(name "TXD0"
@@ -2579,7 +2563,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 12.7 -45.72 90)
 					(length 5.08)
 					(name "TX_CTL"
@@ -2597,7 +2581,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 15.24 -45.72 90)
 					(length 5.08)
 					(name "RSTN"
@@ -2615,7 +2599,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 17.78 -45.72 90)
 					(length 5.08)
 					(name "VDDL"
@@ -2633,7 +2617,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 20.32 -45.72 90)
 					(length 5.08)
 					(name "TDI"
@@ -2651,7 +2635,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 22.86 -45.72 90)
 					(length 5.08)
 					(name "TCK"
@@ -2669,7 +2653,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 0 -2.54 0)
 					(length 5.08)
 					(name "VDDP_1"
@@ -2687,7 +2671,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 25.4 -45.72 90)
 					(length 5.08)
 					(name "TMS"
@@ -2705,7 +2689,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 27.94 -45.72 90)
 					(length 5.08)
 					(name "TDO"
@@ -2723,7 +2707,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 30.48 -45.72 90)
 					(length 5.08)
 					(name "LED2"
@@ -2741,7 +2725,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 33.02 -45.72 90)
 					(length 5.08)
 					(name "LED1"
@@ -2759,7 +2743,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 35.56 -45.72 90)
 					(length 5.08)
 					(name "LED0"
@@ -2777,7 +2761,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 45.72 -27.94 180)
 					(length 5.08)
 					(name "VDDH_1"
@@ -2795,7 +2779,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin bidirectional line
 					(at 45.72 -25.4 180)
 					(length 5.08)
 					(name "TPIAP"
@@ -2813,7 +2797,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin bidirectional line
 					(at 45.72 -22.86 180)
 					(length 5.08)
 					(name "TPIAN"
@@ -2831,7 +2815,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin bidirectional line
 					(at 45.72 -20.32 180)
 					(length 5.08)
 					(name "TPIBP"
@@ -2849,7 +2833,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin bidirectional line
 					(at 45.72 -17.78 180)
 					(length 5.08)
 					(name "TPIBN"
@@ -2867,7 +2851,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 0 -5.08 0)
 					(length 5.08)
 					(name "RXD2"
@@ -2885,7 +2869,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 45.72 -15.24 180)
 					(length 5.08)
 					(name "VDDH_2"
@@ -2903,7 +2887,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin bidirectional line
 					(at 45.72 -12.7 180)
 					(length 5.08)
 					(name "TPICP"
@@ -2921,7 +2905,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin bidirectional line
 					(at 45.72 -10.16 180)
 					(length 5.08)
 					(name "TPICN"
@@ -2939,7 +2923,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin bidirectional line
 					(at 45.72 -7.62 180)
 					(length 5.08)
 					(name "TPIDP"
@@ -2957,7 +2941,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin bidirectional line
 					(at 45.72 -5.08 180)
 					(length 5.08)
 					(name "TPIDN"
@@ -2975,7 +2959,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 45.72 -2.54 180)
 					(length 5.08)
 					(name "VDDH_3"
@@ -2993,7 +2977,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 45.72 0 180)
 					(length 5.08)
 					(name "XTAL1"
@@ -3011,7 +2995,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 38.1 17.78 270)
 					(length 5.08)
 					(name "XTAL2"
@@ -3029,7 +3013,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 35.56 17.78 270)
 					(length 5.08)
 					(name "VDDR"
@@ -3047,7 +3031,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_out line
 					(at 33.02 17.78 270)
 					(length 5.08)
 					(name "REGO"
@@ -3065,7 +3049,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 0 -7.62 0)
 					(length 5.08)
 					(name "RXD1"
@@ -3083,7 +3067,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 30.48 17.78 270)
 					(length 5.08)
 					(name "VDDC_3"
@@ -3101,7 +3085,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 27.94 17.78 270)
 					(length 5.08)
 					(name "MDC"
@@ -3119,7 +3103,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin bidirectional line
 					(at 25.4 17.78 270)
 					(length 5.08)
 					(name "MDIO"
@@ -3137,7 +3121,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 22.86 17.78 270)
 					(length 5.08)
 					(name "SCL"
@@ -3155,7 +3139,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin bidirectional line
 					(at 20.32 17.78 270)
 					(length 5.08)
 					(name "SDA"
@@ -3173,7 +3157,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 17.78 17.78 270)
 					(length 5.08)
 					(name "VDDP_3"
@@ -3191,7 +3175,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 15.24 17.78 270)
 					(length 5.08)
 					(name "CLKOUT"
@@ -3209,7 +3193,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 12.7 17.78 270)
 					(length 5.08)
 					(name "MDINT"
@@ -3227,7 +3211,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 10.16 17.78 270)
 					(length 5.08)
 					(name "RX_CTL"
@@ -3245,7 +3229,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 7.62 17.78 270)
 					(length 5.08)
 					(name "GND"
@@ -3263,7 +3247,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 0 -10.16 0)
 					(length 5.08)
 					(name "RXD0"
@@ -3281,7 +3265,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin output line
 					(at 0 -12.7 0)
 					(length 5.08)
 					(name "RX_CLK"
@@ -3299,7 +3283,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 0 -15.24 0)
 					(length 5.08)
 					(name "VDDP_2"
@@ -3317,7 +3301,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin power_in line
 					(at 0 -17.78 0)
 					(length 5.08)
 					(name "VDDC_1"
@@ -3335,7 +3319,7 @@
 						)
 					)
 				)
-				(pin passive line
+				(pin input line
 					(at 0 -20.32 0)
 					(length 5.08)
 					(name "TX_CLK"
@@ -4361,7 +4345,7 @@
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "U**"
-				(at 21.59 17.78 0)
+				(at 8.89 22.86 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -4370,7 +4354,7 @@
 				)
 			)
 			(property "Value" "TXV0106BQBR"
-				(at 21.59 15.24 0)
+				(at 8.89 20.32 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -4459,8 +4443,8 @@
 			)
 			(symbol "TXV0106BQBR_1_1"
 				(rectangle
-					(start 5.08 7.62)
-					(end 20.32 -16.51)
+					(start -7.62 12.7)
+					(end 7.62 -11.43)
 					(stroke
 						(width 0.254)
 						(type default)
@@ -4470,7 +4454,7 @@
 					)
 				)
 				(pin power_in line
-					(at 10.16 10.16 270)
+					(at -2.54 15.24 270)
 					(length 2.54)
 					(name "VCCA"
 						(effects
@@ -4487,8 +4471,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 22.86 -12.7 180)
+				(pin output line
+					(at 10.16 -7.62 180)
 					(length 2.54)
 					(name "B6"
 						(effects
@@ -4505,8 +4489,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 22.86 -10.16 180)
+				(pin output line
+					(at 10.16 -5.08 180)
 					(length 2.54)
 					(name "B5"
 						(effects
@@ -4523,8 +4507,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 22.86 -7.62 180)
+				(pin output line
+					(at 10.16 -2.54 180)
 					(length 2.54)
 					(name "B4"
 						(effects
@@ -4541,8 +4525,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 22.86 -5.08 180)
+				(pin output line
+					(at 10.16 0 180)
 					(length 2.54)
 					(name "B3"
 						(effects
@@ -4559,8 +4543,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 22.86 -2.54 180)
+				(pin output line
+					(at 10.16 2.54 180)
 					(length 2.54)
 					(name "B2"
 						(effects
@@ -4577,8 +4561,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 22.86 0 180)
+				(pin output line
+					(at 10.16 5.08 180)
 					(length 2.54)
 					(name "B1"
 						(effects
@@ -4596,7 +4580,7 @@
 					)
 				)
 				(pin power_in line
-					(at 15.24 10.16 270)
+					(at 2.54 15.24 270)
 					(length 2.54)
 					(name "VCCB"
 						(effects
@@ -4614,7 +4598,7 @@
 					)
 				)
 				(pin power_in line
-					(at 15.24 -21.59 90)
+					(at 2.54 -16.51 90)
 					(length 5.08)
 					(name "GND_2"
 						(effects
@@ -4631,8 +4615,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 2.54 0 0)
+				(pin input line
+					(at -10.16 5.08 0)
 					(length 2.54)
 					(name "A1"
 						(effects
@@ -4649,8 +4633,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 2.54 -2.54 0)
+				(pin input line
+					(at -10.16 2.54 0)
 					(length 2.54)
 					(name "A2"
 						(effects
@@ -4667,8 +4651,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 2.54 -5.08 0)
+				(pin input line
+					(at -10.16 0 0)
 					(length 2.54)
 					(name "A3"
 						(effects
@@ -4685,8 +4669,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 2.54 -7.62 0)
+				(pin input line
+					(at -10.16 -2.54 0)
 					(length 2.54)
 					(name "A4"
 						(effects
@@ -4703,8 +4687,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 2.54 -10.16 0)
+				(pin input line
+					(at -10.16 -5.08 0)
 					(length 2.54)
 					(name "A5"
 						(effects
@@ -4721,8 +4705,8 @@
 						)
 					)
 				)
-				(pin bidirectional line
-					(at 2.54 -12.7 0)
+				(pin input line
+					(at -10.16 -7.62 0)
 					(length 2.54)
 					(name "A6"
 						(effects
@@ -4740,7 +4724,7 @@
 					)
 				)
 				(pin power_in line
-					(at 10.16 -21.59 90)
+					(at -2.54 -16.51 90)
 					(length 5.08)
 					(name "GND_1"
 						(effects
@@ -4758,7 +4742,7 @@
 					)
 				)
 				(pin input line
-					(at 12.7 -21.59 90)
+					(at 0 -16.51 90)
 					(length 5.08)
 					(name "~{OE}"
 						(effects
@@ -5385,28 +5369,16 @@
 		(uuid "00109bf5-70f0-4341-aa5c-ea15f8744a78")
 	)
 	(junction
-		(at 173.99 111.76)
+		(at 171.45 67.31)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "08f41783-1a26-4389-8042-9236f366b60e")
+		(uuid "0ae402aa-a533-4490-af47-de903a38c517")
 	)
 	(junction
 		(at 215.9 96.52)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "0b65b70f-69ae-42ae-a4fe-d186f69b2575")
-	)
-	(junction
-		(at 171.45 67.31)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "0bfeaadd-354b-4b40-8d64-ae00083c05d5")
-	)
-	(junction
-		(at 176.53 80.01)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "127dbd69-3370-4b8e-a5be-bdbbf9e6bea3")
 	)
 	(junction
 		(at 140.97 137.16)
@@ -5425,6 +5397,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "22b72e5d-b0ab-44d0-9000-c4e17c1e7119")
+	)
+	(junction
+		(at 173.99 111.76)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "2571f552-8b84-4abb-a651-8ad53577864b")
 	)
 	(junction
 		(at 45.72 144.78)
@@ -5457,12 +5435,6 @@
 		(uuid "44263d15-66c3-464e-8f5f-82cbbcc82245")
 	)
 	(junction
-		(at 173.99 67.31)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "49e88644-74bd-4ca8-a0eb-e2904a324510")
-	)
-	(junction
 		(at 62.23 87.63)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5475,6 +5447,12 @@
 		(uuid "562f700c-9d3e-4113-8bfb-101feda1a8dd")
 	)
 	(junction
+		(at 176.53 80.01)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6202b6e5-12ce-4836-9a5d-ce4dfd1362c3")
+	)
+	(junction
 		(at 234.95 102.87)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5484,7 +5462,7 @@
 		(at 171.45 111.76)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "716fb80c-7330-43d4-9ad8-bc52f1ec01e6")
+		(uuid "6e7076b8-4e7c-4cdb-9365-b1a9cbe92a3d")
 	)
 	(junction
 		(at 204.47 52.07)
@@ -5497,6 +5475,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "76994e7c-da47-44d6-9989-c1c7e958249f")
+	)
+	(junction
+		(at 171.45 35.56)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "7a5247f9-137a-4476-9e58-88c6c27a0c9f")
 	)
 	(junction
 		(at 60.96 26.67)
@@ -5547,12 +5531,6 @@
 		(uuid "9d682297-60d8-47ca-893e-929edfb9569c")
 	)
 	(junction
-		(at 171.45 35.56)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "a087ebd1-9894-4368-a074-46a726bfc7be")
-	)
-	(junction
 		(at 41.91 26.67)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -5577,10 +5555,10 @@
 		(uuid "c3f0339d-16a2-4104-b2a1-c87a562d5c2b")
 	)
 	(junction
-		(at 176.53 35.56)
+		(at 217.17 49.53)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "c7efef44-9343-4763-a780-9cc457e86ddb")
+		(uuid "cd9971e3-71d7-4461-8cad-b3ab68366f08")
 	)
 	(junction
 		(at 60.96 31.75)
@@ -5619,10 +5597,16 @@
 		(uuid "dc60114a-5a79-4ecb-9a08-22929080f98d")
 	)
 	(junction
+		(at 173.99 67.31)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e7f836c4-fe7d-4946-909d-9ca14308f82d")
+	)
+	(junction
 		(at 171.45 80.01)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "e2683b23-4109-4916-a16f-606a8d0ce8ad")
+		(uuid "e9c84dee-8293-4313-9163-1e19e8f4040d")
 	)
 	(junction
 		(at 73.66 26.67)
@@ -5647,6 +5631,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "fb1ccd2f-7428-4101-9453-8675e0950fd7")
+	)
+	(junction
+		(at 176.53 35.56)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "fbd3866f-f7dd-4d6f-8129-80d196757ea9")
 	)
 	(junction
 		(at 118.11 154.94)
@@ -5870,16 +5860,6 @@
 	)
 	(wire
 		(pts
-			(xy 171.45 111.76) (xy 173.99 111.76)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "1658d3e0-7fd2-45ef-bc76-b1c8892fc194")
-	)
-	(wire
-		(pts
 			(xy 274.32 97.79) (xy 274.32 102.87)
 		)
 		(stroke
@@ -6047,16 +6027,6 @@
 			(type default)
 		)
 		(uuid "33882d6a-9a23-4049-8ed6-27da6724cf42")
-	)
-	(wire
-		(pts
-			(xy 173.99 111.76) (xy 176.53 111.76)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3700e2e7-a568-4024-a598-bfc7842e8987")
 	)
 	(wire
 		(pts
@@ -6400,6 +6370,16 @@
 	)
 	(wire
 		(pts
+			(xy 173.99 111.76) (xy 176.53 111.76)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8d5a0aa1-6c22-4778-9813-8001d4101ad2")
+	)
+	(wire
+		(pts
 			(xy 166.37 80.01) (xy 171.45 80.01)
 		)
 		(stroke
@@ -6490,13 +6470,13 @@
 	)
 	(wire
 		(pts
-			(xy 171.45 67.31) (xy 173.99 67.31)
+			(xy 173.99 67.31) (xy 176.53 67.31)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "97c3cb83-5538-446d-85cb-6f2755b18c5d")
+		(uuid "987a821d-c2be-4cdb-81b7-d6f7fa9dfd25")
 	)
 	(wire
 		(pts
@@ -6567,6 +6547,16 @@
 			(type default)
 		)
 		(uuid "a5e43888-042c-4b5b-9fa3-903fd25bada6")
+	)
+	(wire
+		(pts
+			(xy 171.45 67.31) (xy 173.99 67.31)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a7adf474-9771-4915-94b9-faef81b4e808")
 	)
 	(wire
 		(pts
@@ -6850,16 +6840,6 @@
 	)
 	(wire
 		(pts
-			(xy 173.99 67.31) (xy 176.53 67.31)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e7a73653-41f1-4b83-9f21-9ce2154596fd")
-	)
-	(wire
-		(pts
 			(xy 71.12 120.65) (xy 71.12 123.19)
 		)
 		(stroke
@@ -6887,6 +6867,16 @@
 			(type default)
 		)
 		(uuid "e9d354ba-87f6-40c1-9fdf-5846e709d246")
+	)
+	(wire
+		(pts
+			(xy 171.45 111.76) (xy 173.99 111.76)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "f304b47d-1ee9-4677-b768-66b1c39c25ff")
 	)
 	(wire
 		(pts
@@ -8366,7 +8356,7 @@
 	)
 	(symbol
 		(lib_id "TXV0106BQBR:TXV0106BQBR")
-		(at 161.29 90.17 0)
+		(at 173.99 95.25 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8374,7 +8364,7 @@
 		(dnp no)
 		(uuid "0329ce17-2759-4d2e-8252-422f29ea2823")
 		(property "Reference" "U3"
-			(at 177.4541 77.47 0)
+			(at 190.1541 82.55 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8383,7 +8373,7 @@
 			)
 		)
 		(property "Value" "TXV0106BQBR"
-			(at 175.514 73.66 0)
+			(at 188.214 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8392,7 +8382,7 @@
 			)
 		)
 		(property "Footprint" "local:TXV0106BQBR"
-			(at 182.88 174.93 0)
+			(at 195.58 180.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8402,7 +8392,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/txv0106.pdf?ts=1710334541958&ref_url=https%253A%252F%252Fwww.ti.com%252Fproduct%252FTXV0106%253FkeyMatch%253DTXV"
-			(at 182.88 274.93 0)
+			(at 195.58 280.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8412,7 +8402,7 @@
 			)
 		)
 		(property "Description" "Voltage Level Translator Unidirectional 1 Circuit 6 Channel 500Mbps 16-WQFN (2.5x3.5)"
-			(at 161.29 90.17 0)
+			(at 173.99 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8421,7 +8411,7 @@
 			)
 		)
 		(property "Height" "0.8"
-			(at 182.88 474.93 0)
+			(at 195.58 480.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8431,7 +8421,7 @@
 			)
 		)
 		(property "Mouser Part Number" "595-TXV0106BQBR"
-			(at 182.88 574.93 0)
+			(at 195.58 580.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8441,7 +8431,7 @@
 			)
 		)
 		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Texas-Instruments/TXV0106BQBR?qs=mELouGlnn3c1YOKCKwursg%3D%3D"
-			(at 182.88 674.93 0)
+			(at 195.58 680.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8451,7 +8441,7 @@
 			)
 		)
 		(property "Manufacturer_Name" "Texas Instruments"
-			(at 182.88 774.93 0)
+			(at 195.58 780.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8461,7 +8451,7 @@
 			)
 		)
 		(property "Manufacturer_Part_Number" "TXV0106BQBR"
-			(at 182.88 874.93 0)
+			(at 195.58 880.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8532,7 +8522,8 @@
 	)
 	(symbol
 		(lib_id "TXV0106BQBR:TXV0106BQBR")
-		(at 161.29 45.72 0)
+		(at 173.99 50.8 0)
+		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8540,7 +8531,7 @@
 		(dnp no)
 		(uuid "070aefb0-7bf1-49e1-aa70-bbcf3e064d4a")
 		(property "Reference" "U2"
-			(at 177.4541 33.02 0)
+			(at 170.5259 33.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8549,7 +8540,7 @@
 			)
 		)
 		(property "Value" "TXV0106BQBR"
-			(at 176.276 27.94 0)
+			(at 171.704 27.94 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8558,7 +8549,7 @@
 			)
 		)
 		(property "Footprint" "local:TXV0106BQBR"
-			(at 182.88 130.48 0)
+			(at 152.4 135.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8568,7 +8559,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.ti.com/lit/ds/symlink/txv0106.pdf?ts=1710334541958&ref_url=https%253A%252F%252Fwww.ti.com%252Fproduct%252FTXV0106%253FkeyMatch%253DTXV"
-			(at 182.88 230.48 0)
+			(at 152.4 235.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8578,7 +8569,7 @@
 			)
 		)
 		(property "Description" "Voltage Level Translator Unidirectional 1 Circuit 6 Channel 500Mbps 16-WQFN (2.5x3.5)"
-			(at 161.29 45.72 0)
+			(at 174.244 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8587,7 +8578,7 @@
 			)
 		)
 		(property "Height" "0.8"
-			(at 182.88 430.48 0)
+			(at 152.4 435.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8597,7 +8588,7 @@
 			)
 		)
 		(property "Mouser Part Number" "595-TXV0106BQBR"
-			(at 182.88 530.48 0)
+			(at 152.4 535.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8607,7 +8598,7 @@
 			)
 		)
 		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Texas-Instruments/TXV0106BQBR?qs=mELouGlnn3c1YOKCKwursg%3D%3D"
-			(at 182.88 630.48 0)
+			(at 152.4 635.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8617,7 +8608,7 @@
 			)
 		)
 		(property "Manufacturer_Name" "Texas Instruments"
-			(at 182.88 730.48 0)
+			(at 152.4 735.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8627,7 +8618,7 @@
 			)
 		)
 		(property "Manufacturer_Part_Number" "TXV0106BQBR"
-			(at 182.88 830.48 0)
+			(at 152.4 835.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12653,6 +12644,72 @@
 			(project "SYZYGY-PHY"
 				(path "/cd7d6255-0cd2-43fc-ba6e-5ac7b6205d5d"
 					(reference "#FLG01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 217.17 49.53 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "99dcc6d1-9562-4f24-b9e3-573957158807")
+		(property "Reference" "#FLG06"
+			(at 217.17 47.625 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "1V0"
+			(at 217.17 44.45 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 217.17 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 217.17 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 217.17 49.53 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f2edb973-7a29-49cf-8b13-5c32177e9775")
+		)
+		(instances
+			(project ""
+				(path "/cd7d6255-0cd2-43fc-ba6e-5ac7b6205d5d"
+					(reference "#FLG06")
 					(unit 1)
 				)
 			)

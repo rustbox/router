@@ -7,7 +7,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(property "Reference" "U**"
-			(at 21.59 17.78 0)
+			(at 8.89 22.86 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -16,7 +16,7 @@
 			)
 		)
 		(property "Value" "TXV0106BQBR"
-			(at 21.59 15.24 0)
+			(at 8.89 20.32 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -105,8 +105,8 @@
 		)
 		(symbol "TXV0106BQBR_1_1"
 			(rectangle
-				(start 5.08 7.62)
-				(end 20.32 -16.51)
+				(start -7.62 12.7)
+				(end 7.62 -11.43)
 				(stroke
 					(width 0.254)
 					(type default)
@@ -116,7 +116,7 @@
 				)
 			)
 			(pin power_in line
-				(at 10.16 10.16 270)
+				(at -2.54 15.24 270)
 				(length 2.54)
 				(name "VCCA"
 					(effects
@@ -133,8 +133,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 22.86 -12.7 180)
+			(pin output line
+				(at 10.16 -7.62 180)
 				(length 2.54)
 				(name "B6"
 					(effects
@@ -151,8 +151,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 22.86 -10.16 180)
+			(pin output line
+				(at 10.16 -5.08 180)
 				(length 2.54)
 				(name "B5"
 					(effects
@@ -169,8 +169,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 22.86 -7.62 180)
+			(pin output line
+				(at 10.16 -2.54 180)
 				(length 2.54)
 				(name "B4"
 					(effects
@@ -187,8 +187,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 22.86 -5.08 180)
+			(pin output line
+				(at 10.16 0 180)
 				(length 2.54)
 				(name "B3"
 					(effects
@@ -205,8 +205,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 22.86 -2.54 180)
+			(pin output line
+				(at 10.16 2.54 180)
 				(length 2.54)
 				(name "B2"
 					(effects
@@ -223,8 +223,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 22.86 0 180)
+			(pin output line
+				(at 10.16 5.08 180)
 				(length 2.54)
 				(name "B1"
 					(effects
@@ -242,7 +242,7 @@
 				)
 			)
 			(pin power_in line
-				(at 15.24 10.16 270)
+				(at 2.54 15.24 270)
 				(length 2.54)
 				(name "VCCB"
 					(effects
@@ -260,7 +260,7 @@
 				)
 			)
 			(pin power_in line
-				(at 15.24 -21.59 90)
+				(at 2.54 -16.51 90)
 				(length 5.08)
 				(name "GND_2"
 					(effects
@@ -277,8 +277,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 2.54 0 0)
+			(pin input line
+				(at -10.16 5.08 0)
 				(length 2.54)
 				(name "A1"
 					(effects
@@ -295,8 +295,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 2.54 -2.54 0)
+			(pin input line
+				(at -10.16 2.54 0)
 				(length 2.54)
 				(name "A2"
 					(effects
@@ -313,8 +313,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 2.54 -5.08 0)
+			(pin input line
+				(at -10.16 0 0)
 				(length 2.54)
 				(name "A3"
 					(effects
@@ -331,8 +331,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 2.54 -7.62 0)
+			(pin input line
+				(at -10.16 -2.54 0)
 				(length 2.54)
 				(name "A4"
 					(effects
@@ -349,8 +349,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 2.54 -10.16 0)
+			(pin input line
+				(at -10.16 -5.08 0)
 				(length 2.54)
 				(name "A5"
 					(effects
@@ -367,8 +367,8 @@
 					)
 				)
 			)
-			(pin bidirectional line
-				(at 2.54 -12.7 0)
+			(pin input line
+				(at -10.16 -7.62 0)
 				(length 2.54)
 				(name "A6"
 					(effects
@@ -386,7 +386,7 @@
 				)
 			)
 			(pin power_in line
-				(at 10.16 -21.59 90)
+				(at -2.54 -16.51 90)
 				(length 5.08)
 				(name "GND_1"
 					(effects
@@ -404,7 +404,7 @@
 				)
 			)
 			(pin input line
-				(at 12.7 -21.59 90)
+				(at 0 -16.51 90)
 				(length 5.08)
 				(name "~{OE}"
 					(effects
