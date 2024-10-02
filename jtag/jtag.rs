@@ -126,28 +126,7 @@ fn main() -> ! {
     const TEST_PACKET_CTRL: u8 = 0x1C;
     const TEST_PACKET_DATA: u8 = 0x1D;
 
-    // println!("Using Default test data");
-    // cont.frame_write(md::MDIOFrame::<2>::new(PHY, COUNT_REG), TX_COUNT_FRAMES);
-    // let x = cont.frame_read(md::MDIOFrame::<2>::new(PHY, COUNT_REG));
-    // println!("Wrote: {:x}, {:x}", TX_COUNT_FRAMES, x);
-
-    // cont.frame_write(md::MDIOFrame::<2>::new(PHY, TEST_PACKET_CTRL), TPG_EN);
-    // let x = cont.frame_read(md::MDIOFrame::<2>::new(PHY, TEST_PACKET_CTRL));
-    // println!("Wrote: {:x}, {:x}", TPG_EN, x);
-
-    // cont.frame_write(md::MDIOFrame::<2>::new(PHY, TEST_PACKET_CTRL), TPG_START);
-    // let x = cont.frame_read(md::MDIOFrame::<2>::new(PHY, TEST_PACKET_CTRL));
-    // println!("Wrote: {:x}, {:x}", TPG_START, x);
-    // for t in 0..8 {
-    //     let hi3 = t << 13;
-    //     let reg_value = hi3 + 1;
-    //     let f = md::MDIOFrame::<2>::new(PHY, TEST_REG);
-
-    //     cont.frame_write(f.clone(), reg_value);
-    //     let x = cont.frame_read(f);
-    //     println!("Wrote: {:x}, {:x}", reg_value, x);
-    //     delay.delay_millis(2500);
-    // }
+    
 
     println!("Waiting for input...");
 

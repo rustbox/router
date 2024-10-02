@@ -7244,7 +7244,7 @@
 		(uuid "1a81f864-5c3c-43fe-a01d-47913483c8e9")
 	)
 	(label "TX_CLK_L"
-		(at 184.15 58.42 0)
+		(at 184.15 45.72 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7310,7 +7310,7 @@
 		(uuid "284aff03-9969-4792-a230-13ae0db4323c")
 	)
 	(label "TX_CLK"
-		(at 163.83 58.42 180)
+		(at 163.83 45.72 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7409,7 +7409,7 @@
 		(uuid "421fd5df-12f3-44c1-93d5-939070ae76d2")
 	)
 	(label "TXD2_L"
-		(at 184.15 53.34 0)
+		(at 184.15 50.8 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7552,7 +7552,7 @@
 		(uuid "5f3a0b59-15a2-4204-8da3-5aa15dabdeb7")
 	)
 	(label "TX_CTL_L"
-		(at 184.15 45.72 0)
+		(at 184.15 58.42 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7607,7 +7607,7 @@
 		(uuid "75846ed9-5e99-42c8-b38d-af24a749c71f")
 	)
 	(label "TXD1_L"
-		(at 184.15 50.8 0)
+		(at 184.15 53.34 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7651,7 +7651,7 @@
 		(uuid "77575803-ddb3-4834-97de-36c1e61e10ea")
 	)
 	(label "TXD1"
-		(at 163.83 50.8 180)
+		(at 163.83 53.34 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7717,7 +7717,7 @@
 		(uuid "845e1286-4a1e-44b8-8f8c-e2bbd997bed4")
 	)
 	(label "TX_CTL"
-		(at 163.83 45.72 180)
+		(at 163.83 58.42 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -7728,7 +7728,7 @@
 		(uuid "8771616d-9836-4a89-b308-434fe5544975")
 	)
 	(label "TXD0_L"
-		(at 184.15 48.26 0)
+		(at 184.15 55.88 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8058,7 +8058,7 @@
 		(uuid "c622cd37-c4a1-4bdf-af27-8ddc075fd45d")
 	)
 	(label "TXD0"
-		(at 163.83 48.26 180)
+		(at 163.83 55.88 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8080,7 +8080,7 @@
 		(uuid "c83c30c4-6849-4381-a08d-aff0054be158")
 	)
 	(label "TXD3"
-		(at 163.83 55.88 180)
+		(at 163.83 48.26 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8212,7 +8212,7 @@
 		(uuid "e165ba25-dde6-47c5-8e91-0d27db6c263d")
 	)
 	(label "TXD2"
-		(at 163.83 53.34 180)
+		(at 163.83 50.8 180)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -8256,7 +8256,7 @@
 		(uuid "ed2ad4bc-fe3d-46e3-ba18-bd8419422e33")
 	)
 	(label "TXD3_L"
-		(at 184.15 55.88 0)
+		(at 184.15 48.26 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
