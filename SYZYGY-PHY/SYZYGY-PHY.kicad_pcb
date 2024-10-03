@@ -13740,8 +13740,8 @@
 			(justify right bottom)
 		)
 	)
-	(gr_text "@rustbox\nrev 1 08-17-2024"
-		(at 64.675 63.4 -90)
+	(gr_text "@rustbox\nrev 2 10-02-2024"
+		(at 64.675 63.4 270)
 		(layer "F.SilkS")
 		(uuid "f7d9dae2-8c57-40fb-be40-cdbc48bf5324")
 		(effects
