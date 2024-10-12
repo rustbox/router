@@ -10,11 +10,11 @@ extern crate alloc;
 use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::mem::MaybeUninit;
+use esp_backtrace as _;
 use esp_hal::clock::Clocks;
 use esp_hal::gpio::{AnyOutputOpenDrain, Level, Pull};
 use esp_hal::timer::systimer::SystemTimer;
-use core::mem::MaybeUninit;
-use esp_backtrace as _;
 use esp_hal::timer::timg::TimerGroup;
 use esp_hal::timer::{ErasedTimer, PeriodicTimer};
 use esp_hal::uart;
@@ -126,7 +126,22 @@ fn main() -> ! {
     const TEST_PACKET_CTRL: u8 = 0x1C;
     const TEST_PACKET_DATA: u8 = 0x1D;
 
-    
+    let mut phy_addr = 0xff;
+    fn auto_detect(cont: &mut Controller, phy_addr: &mut u8) {
+        let phys = detect(cont);
+        if phys.is_empty() {
+            println!("No PHY detected");
+        } else {
+            *phy_addr = phys[0];
+            let v: Vec<_> = phys.into_iter().map(|a| format!("0x{:x}", a)).collect();
+            println!(
+                "Detected PHYS: [{:?}] and using 0x{:x}",
+                v.join(", "),
+                phy_addr
+            );
+        }
+    };
+    auto_detect(&mut cont, &mut phy_addr);
 
     println!("Waiting for input...");
 
@@ -161,23 +176,29 @@ fn main() -> ! {
             .build_sync(&mut uart0)
             .unwrap();
 
-        let mut phy_addr = 0xff;
-        while let Ok(line) = editor.readline(prompt, &mut uart0) {
+        while let Ok(line) = {
+            editor.reinit(&mut uart0).unwrap(); // On every newline, re-initialize the cursor/terminal state
+
+            editor.readline(prompt, &mut uart0)
+        } {
             const N: usize = 4;
             let mut split = [""; N];
-            let n = line.splitn(N, ' ').collect_slice(&mut split[..]);
+            let n = line
+                .splitn(N, ' ')
+                .filter(|s| !s.is_empty())
+                .collect_slice(&mut split[..]);
             let split = &split[..n];
             match split {
                 ["help"] => {
                     println!("Interactive PHY MDIO tool! Available Commands:");
                     println!("* help: Prints this message");
                     println!("* reset: Resets the PHY by asserting the reset line for some time");
-                    println!("* detect <auto>: Detects any PHYs connected and reports the PHY addresses");
+                    println!("* detect [auto]: Detects and reports addresses of connected PHYs");
                     println!("                 If `auto` then the lowest PHY address will be automatically set");
                     println!("* status: Prints the PHY address that reads and writes will be directed to");
-                    println!("* setphy [ADDR]: Set the PHY address that reads and writes will use");
-                    println!("* read [all|REG]: read a PHY register at REG address, or print all standard register values");
-                    println!("* write [REG] [DATA]: write DATA to register REG");
+                    println!("* setphy ADDR: Set the PHY address that reads and writes will use");
+                    println!("* read all|REG: read a PHY register at REG address, or print all standard register values");
+                    println!("* write REG DATA: write DATA to register REG");
                 }
                 ["reset"] => reset(),
                 ["detect"] => {
@@ -188,17 +209,8 @@ fn main() -> ! {
                         let v: Vec<_> = phys.into_iter().map(|a| format!("0x{:x}", a)).collect();
                         println!("Detected PHYS: [{:?}]", v.join(", "));
                     }
-                },
-                ["detect", "auto"] => {
-                    let phys = detect(&mut cont);
-                    if phys.is_empty() {
-                        println!("No PHY detected");
-                    } else {
-                        phy_addr = phys[0];
-                        let v: Vec<_> = phys.into_iter().map(|a| format!("0x{:x}", a)).collect();
-                        println!("Detected PHYS: [{:?}] and using 0x{:x}", v.join(", "), phy_addr);
-                    }
                 }
+                ["detect", "auto"] => auto_detect(&mut cont, &mut phy_addr),
                 ["status"] => {
                     println!("Connected to PHY at 0x{:x}", phy_addr);
                 }
@@ -229,7 +241,7 @@ fn main() -> ! {
                 }
                 ["read", ..] => {
                     println!("error: read: unrecognized arguments: {:?}", &split[1..]);
-                    println!("usage: read [all|REG])");
+                    println!("usage: read all|REG)");
                 }
                 ["write", reg, val] => {
                     let reg = parse_num(reg);
@@ -251,13 +263,13 @@ fn main() -> ! {
                 }
                 ["write", ..] => {
                     println!("error: write: unrecognized arguments: {:?}", &split[1..]);
-                    println!("usage: write [REG])");
+                    println!("usage: write REG DATA)");
                 }
 
+                [] => {}
                 [other, ..] => {
                     println!("error: unrecognized: {}", other)
                 }
-                [] => {}
             }
         }
     }
@@ -266,7 +278,7 @@ fn main() -> ! {
 fn detect(cont: &mut Controller) -> Vec<u8> {
     let phy_id1_addr = 0x02;
     let mut phys = Vec::new();
-    for p in 0..(1<<5) {
+    for p in 0..(1 << 5) {
         let x = cont.frame_read(md::MDIOFrame::<2>::new(p, phy_id1_addr));
         if x != 0xffff {
             // println!("x == {:x}", x);
@@ -462,8 +474,6 @@ impl embedded_hal::digital::v2::OutputPin for IOPin {
 //     cable.change_mode(&[1, 1, 1, 0, 0], false);
 //     cable.read_data(32)
 // }
-
-
 
 // see archived: https://github.com/kchmck/collect_slice
 pub trait CollectSlice: Iterator {
