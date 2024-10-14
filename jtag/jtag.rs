@@ -373,6 +373,40 @@ fn main() -> ! {
                     println!("skew Tx: {}, Rx: {}", tx_skew, rx_skew);
                 }
 
+                ["test", mode] => {
+                    let m = match mode {
+                        &"off" =>    0b000,
+                        &"netl" =>   0b001,
+                        &"fetl" =>   0b010,
+                        &"echo" =>   0b011,
+                        &"rjtl" =>   0b100,
+                        &"fetls" =>  0b101,
+                        _ => {
+                            println!("Invalid test mode: `{}`. Must be one of \"off, netl, fetl, echo, rjtl, fetls\"", mode);
+                            continue;
+                        }
+                    };
+                    cont.frame_write(md::MDIOFrame::<2>::new(PHY, 0x13), (m << 13) + 1);
+                }
+
+                ["test"] => {
+                    let test = cont.frame_read(md::MDIOFrame::<2>::new(PHY, 0x13));
+                    let mode = (test >> 13) & 0b111;
+                    let m = match mode {
+                        0b000 => "off",
+                        0b001 => "netl",
+                        0b010 => "fetl",
+                        0b011 => "echo",
+                        0b100 => "rjtl",
+                        0b101 => "fetls",
+                        _ => {
+                            println!("Unknown TLOOP field: `{:b}` in PHY_PHYCTL1 (offsete 0x13) register", mode);
+                            continue;
+                        }
+                    };
+                    println!("Test mode: `{}`", m);
+                }
+
                 [] => {}
                 [other, ..] => {
                     println!("error: unrecognized: {}", other)
