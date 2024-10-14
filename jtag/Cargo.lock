@@ -488,8 +488,7 @@ checksum = "8d5439c4ad607c3c23abf66de8c8bf57ba8adcd1f129e699851a6e43935d339d"
 [[package]]
 name = "noline"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cbbf3a6bce822f8bd51dfbc9d46cb4b56583b5cce4e6f7d2995c660477ad5023"
+source = "git+https://github.com/rustbox/noline#90f638e03f3e3b024801efa46642754845ab474f"
 dependencies = [
  "embedded-io",
  "embedded-io-async",
