@@ -253,6 +253,113 @@ fn main() -> ! {
                     println!("error: write: unrecognized arguments: {:?}", &split[1..]);
                     println!("usage: write [REG])");
                 }
+                ["relink"] => {
+                    let CONT = 0x00;
+                    let RESET_LINK = 0x1200;
+                    cont.frame_write(md::MDIOFrame::<2>::new(PHY, CONT), RESET_LINK);
+                }
+
+                ["count"] => {
+                    let count = cont.frame_read(md::MDIOFrame::<2>::new(PHY, COUNT_REG));
+                    let event = (count >> 8) & 0b0000_1111;
+                    let event_name = match event {
+                        0b0000 => "rxerr",
+                        0b0001 => "rx",
+                        0b0010 => "esd",
+                        0b0011 => "ssd",
+                        0b0100 => "txerr",
+                        0b0101 => "tx",
+                        0b0110 => "col",
+                        0b1000 => "ld",
+                        0b1001 => "ds",
+                        _ => {
+                            println!("Found unexpected event: `{:b}`", event);
+                            continue;
+                        }
+                    };
+                    println!("{} count: {}", event_name, count & 0xff);
+                }
+
+                ["count", event] => {
+                    let ev = match event {
+                        &"rxerr" =>  0b0000,
+                        &"rx" =>     0b0001,
+                        &"esd" =>    0b0010,
+                        &"ssd" =>    0b0011,
+                        &"txerr" =>  0b0100,
+                        &"tx" =>     0b0101,
+                        &"col" =>    0b0110,
+                        &"ld" =>     0b1000,
+                        &"ds" =>     0b1001,
+                        _ => {
+                            println!("Invalid event! Should be one of `rxerr`, `rx`, `esd`, `ssd`, `txerr`, `tx`, `col`, `ld`, `ds`");
+                            continue;
+                        }
+                    };
+
+                    cont.frame_write(md::MDIOFrame::<2>::new(PHY, COUNT_REG), ev << 8);
+                }
+
+                ["skew", dir, val] => {
+                    let shift = match dir {
+                        &"tx" => 8,
+                        &"rx" => 12,
+                        _ => {
+                            println!("Invalid `direction`: \"{}\". Must be either `tx` or `rx`", dir);
+                            continue
+                        }
+                    };
+                    
+                    let v = match val {
+                        &"0"     => 0b000,
+                        &"0.5"   => 0b001,
+                        &"1.0"   => 0b010,
+                        &"1.5"   => 0b011,
+                        &"2.0"   => 0b100,
+                        &"2.5"   => 0b101,
+                        &"3.0"   => 0b110,
+                        &"3.5"   => 0b111,
+                        _ => {
+                            println!("Invalid skew amount: \"{}\". Must be one of 0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, or 3.5", dir);
+                            continue
+                        }
+                    };
+
+                    // 0x17
+                    cont.frame_write(md::MDIOFrame::<2>::new(PHY, 0x17), v << shift);
+                }
+
+                ["skew"] => {
+                    let skew = cont.frame_read(md::MDIOFrame::<2>::new(PHY, 0x17));
+                    let rx = (skew >> 12) & 0b111;
+                    let tx = (skew >> 8) & 0b111;
+
+                    let rx_skew = match rx {
+                        0b000 => "0"  ,
+                        0b001 => "0.5",
+                        0b010 => "1.0",
+                        0b011 => "1.5",
+                        0b100 => "2.0",
+                        0b101 => "2.5",
+                        0b110 => "3.0",
+                        0b111 => "3.5",
+                        _ => unreachable!()
+                    };
+
+                    let tx_skew = match tx {
+                        0b000 => "0"  ,
+                        0b001 => "0.5",
+                        0b010 => "1.0",
+                        0b011 => "1.5",
+                        0b100 => "2.0",
+                        0b101 => "2.5",
+                        0b110 => "3.0",
+                        0b111 => "3.5",
+                        _ => unreachable!()
+                    };
+
+                    println!("skew Tx: {}, Rx: {}", tx_skew, rx_skew);
+                }
 
                 [other, ..] => {
                     println!("error: unrecognized: {}", other)
